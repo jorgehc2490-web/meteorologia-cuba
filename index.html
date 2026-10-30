@@ -99,6 +99,13 @@
   #obsChips { display:flex; gap:6px; flex-wrap:wrap; }
   #obsChips button { border:1.5px solid #0b5fa5; background:#fff; color:#0b5fa5; border-radius:999px; padding:6px 13px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
   #obsChips button.act { background:#0b5fa5; color:#fff; }
+  /* v24: hilera de Observación VISIBLE bajo el título de Avisos (las mismas
+     capas que el popover Capas; la lluvia satelital quedaba escondida). */
+  .mc-obs-row { margin-top:9px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .mc-obs-lbl { font-size:13px; font-weight:700; color:#0a2f47; }
+  #obsChips2 { display:inline-flex; gap:6px; flex-wrap:wrap; }
+  #obsChips2 button { border:1.5px solid #0b5fa5; background:#fff; color:#0b5fa5; border-radius:999px; padding:6px 13px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  #obsChips2 button.act { background:#0b5fa5; color:#fff; }
   .radarctl { display:flex; align-items:center; gap:9px; flex-wrap:wrap; background:#f2f7fa; border:1px solid #dde7ee; border-radius:10px; padding:8px 10px; margin-top:9px; font-size:12.5px; }
   .radarctl label { font-weight:600; color:#23404f; }
   .radarctl .nota { font-size:11.5px; color:#5b7180; flex-basis:100%; line-height:1.45; }
@@ -550,7 +557,7 @@
     <div class="sit-est" id="sitEst"><span>Cargando observaciones…</span></div>
     <p class="mc-nota">Extremos calculados del modelo (modelo GFS) sobre los 168 municipios; observaciones: reportes METAR reales (red OMM) vía IEM / NWS. El detalle completo está en <a href="#estaciones">Estaciones</a>.</p>
   </section>
-<div class="mc-sec-cab-mapa" id="avisos"><h2>🗺️ Avisos · Mapa interactivo</h2><p>El semáforo de riesgo por municipio y provincia: 10 peligros con los niveles de Jorge, para hoy, mañana y pasado mañana. El peligro de incendios se calcula con el índice de sequía de Keetch–Byram (KBDI) de los últimos 90 días, combinado con la humedad mínima y el viento de cada día. Toque un fenómeno para verlo solo en el mapa; toque un municipio o una provincia para su detalle y recomendaciones.</p></div>
+<div class="mc-sec-cab-mapa" id="avisos"><h2>🗺️ Avisos · Mapa interactivo</h2><p>El semáforo de riesgo por municipio y provincia: 10 peligros con los niveles de Jorge, para hoy, mañana y pasado mañana. El peligro de incendios se calcula con el índice de sequía de Keetch–Byram (KBDI) de los últimos 90 días, combinado con la humedad mínima y el viento de cada día. Toque un fenómeno para verlo solo en el mapa; toque un municipio o una provincia para su detalle y recomendaciones.</p><div class="mc-obs-row"><span class="mc-obs-lbl">Observación:</span><span id="obsChips2"></span></div></div>
 <div class="dockChips fenCab"><div id="chips"></div></div>
   <div id="modoBar" class="oculto"></div>
   <section class="hero">
@@ -2897,8 +2904,23 @@ const obsCont = document.getElementById("obsChips");
   });
   obsCont.appendChild(b);
 });
+/* v24: el mismo juego de botones, visible bajo el título de Avisos. */
+const obsCont2 = document.getElementById("obsChips2");
+if (obsCont2){
+  [["radarChk", "Radar"], ["satChk", "Satélite"], ["estChk", "Estaciones"], ["imergChk", "Lluvia satelital"]].forEach(([id, txt]) => {
+    const b = document.createElement("button");
+    b.textContent = txt; b.dataset.chk = id; b.type = "button";
+    b.addEventListener("click", () => {
+      const c = document.getElementById(id);
+      c.checked = !c.checked;
+      c.dispatchEvent(new Event("change"));
+    });
+    obsCont2.appendChild(b);
+  });
+}
 function syncObs(){
   obsCont.querySelectorAll("button").forEach(b => b.classList.toggle("act", document.getElementById(b.dataset.chk).checked));
+  if (obsCont2) obsCont2.querySelectorAll("button").forEach(b => b.classList.toggle("act", document.getElementById(b.dataset.chk).checked));
   document.getElementById("ctlRadar").classList.toggle("oculto", !document.getElementById("radarChk").checked);
   document.getElementById("ctlSat").classList.toggle("oculto", !document.getElementById("satChk").checked);
   document.getElementById("ctlEst").classList.toggle("oculto", !document.getElementById("estChk").checked);
@@ -3767,6 +3789,17 @@ function reajustarMapaAvisos(){
   } catch(e){}
   try { window.dispatchEvent(new Event("resize")); } catch(e){}
 }
+function reajustarMapaCiclones(){
+  /* v24: el mapa de Ciclones se crea al cargar la página, con la sección
+     oculta, y su fitBounds inicial sale con zoom de mundo entero; al entrar
+     en la sección se reencuadra al Atlántico, como Avisos. */
+  try {
+    if (typeof cicS !== "undefined" && cicS.map){
+      cicS.map.invalidateSize();
+      cicS.map.fitBounds([[3.5, -103], [46, -8]]);
+    }
+  } catch(e){}
+}
 function mostrarVista(n, sinScroll){
   if (VISTAS_MC.indexOf(n) < 0) n = "inicio";
   vistaActual = n;
@@ -3779,6 +3812,7 @@ function mostrarVista(n, sinScroll){
   if (n === "situacion"){ try { initNHC(); } catch(e){} }
   ubicarFicha();
   if (n === "avisos") setTimeout(reajustarMapaAvisos, 80);
+  if (n === "ciclones") setTimeout(reajustarMapaCiclones, 80);
   if (!sinScroll){
     var cab = document.querySelector("header.mc-head");
     if (cab) try { cab.scrollIntoView({ block: "start" }); } catch(e){}
@@ -5250,9 +5284,9 @@ async function cicMapaInit(){
   if (cicS.map){ cicS.map.invalidateSize(); return; }
   if (cicS.init) return;
   cicS.init = true;
-  cicS.map = L.map("mapCic", { scrollWheelZoom: false });
+  cicS.map = L.map("mapCic", { scrollWheelZoom: false, maxBounds: [[-20, -130], [70, 20]], maxBoundsViscosity: 0.7 });
   cicS.map.fitBounds([[3.5, -103], [46, -8]]);
-  L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 12, attribution: "© Esri · Sistemas y zonas: NHC / NOAA" }).addTo(cicS.map);
+  L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 12, attribution: "© Esri · Sistemas y zonas: NHC / NOAA", noWrap: true }).addTo(cicS.map);
   const pill = document.getElementById("cicPill");
   try {
     const res = await Promise.all([
@@ -6293,7 +6327,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v23",
+  version: "v24",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
