@@ -419,6 +419,13 @@
   .clima-fig img { width:100%; height:auto; display:block; border:1px solid #d9e4ea; border-radius:10px; background:#fff; }
   .clima-fig figcaption { font-size:13.5px; line-height:1.55; color:#24455c; margin-top:7px; }
   .clima-fig figcaption b { color:#0a2f47; }
+  /* v16: mapa propio NMME de Clima — leyenda de la escala y descripción del mes */
+  .nmme-ley { display:flex; flex-wrap:wrap; gap:5px 12px; align-items:center; margin:8px 0 2px; font-size:12.5px; color:#24455c; }
+  .nmme-ley b { color:#0a2f47; }
+  .nmme-ley .it { display:inline-flex; align-items:center; gap:5px; }
+  .nmme-ley .sw { width:14px; height:14px; border-radius:3px; border:1px solid rgba(6,40,63,.25); display:inline-block; }
+  .nmme-desc { font-size:14px; line-height:1.6; color:#24455c; margin:8px 0; }
+  .nmme-desc b { color:#0a2f47; }
   .sit-nhc { margin-top:14px; border:1px solid #dbe7ee; border-left:5px solid #0d4066; border-radius:12px; padding:12px 14px; background:#f7fbfe; }
   .sit-nhc h3 { margin:0 0 4px; font-size:16px; color:#0a2f47; }
   .sit-nhc .nhc-resumen { margin:2px 0 6px; font-size:14.5px; line-height:1.6; color:#24455c; }
@@ -777,15 +784,15 @@
     <p id="climaEstacion"></p>
     <div class="mc-tabla-wrap"><table class="mc-tabla" id="climaTabla"><thead><tr><th>Capital</th><th>Normal máx. del mes</th><th>Normal mín. del mes</th><th>Lluvia normal del mes</th><th>Hoy: máx. pronosticada</th><th>Diferencia</th></tr></thead><tbody><tr><td colspan="6">Cargando…</td></tr></tbody></table></div>
     <p id="climaRecords"></p>
-    <h3 class="mc-sub">Perspectivas mensuales de los modelos numéricos (conjunto NMME)</h3>
-    <p>Lo que los grandes modelos de clima, combinados en el conjunto norteamericano <b>NMME</b>, esperan para el mes próximo, en los mapas regionales de <b>Tropical Tidbits</b> (Estados Unidos, el golfo de México y el Caribe), donde <b>Cuba se distingue en la parte inferior</b>: son mapas de tendencia — no pronósticos locales — para saber si el mes tiende a más lluvioso o más seco y a más cálido o más fresco de lo normal. Se actualizan una vez al mes; el título de cada mapa indica el mes de cálculo («Init») y el mes válido («Valid for»), y esta página busca siempre la corrida mensual más reciente.</p>
-    <figure class="clima-fig"><img id="climaImgLluvia" src="https://images.weserv.nl/?url=www.tropicaltidbits.com/analysis/models/nmme/2026100800/nmme_apcpna_month_nmme_us_2.png" alt="Mapa NMME regional de anomalía de la lluvia mensual" loading="lazy">
-    <figcaption><b>Lluvia del mes — anomalía (NMME).</b> La lluvia total que se espera de más o de menos frente a lo normal en el mes válido (<span data-clima-mes>noviembre de 2026</span>), en pulgadas: verdes, más lluvia de lo normal; amarillos, naranjas y rojos, menos. Cuba es la isla alargada bajo la Florida, en el centro inferior del mapa: el color sobre la isla y el Caribe que la rodea marca la tendencia del mes. Es una guía regional, no la lluvia de un municipio concreto.</figcaption>
-    <p class="mc-nota clima-fallo" hidden>Este mapa no pudo cargarse ahora mismo. Puede verlo directamente en <a href="https://www.tropicaltidbits.com/analysis/models/?model=nmme&region=us&pkg=apcpna_month_nmme" target="_blank" rel="noopener">Tropical Tidbits ↗</a>.</p></figure>
-    <figure class="clima-fig"><img id="climaImgTemp" src="https://images.weserv.nl/?url=www.tropicaltidbits.com/analysis/models/nmme/2026100800/nmme_T2ma_nmme_us_2.png" alt="Mapa NMME regional de anomalía de la temperatura del aire mensual" loading="lazy">
-    <figcaption><b>Temperatura del aire del mes — anomalía (NMME).</b> Cuánto se espera que la temperatura del aire a 2 metros esté por encima o por debajo de lo normal en el mes válido (<span data-clima-mes>noviembre de 2026</span>), en °C: amarillos, naranjas y rojos, más cálido de lo normal; azules, más fresco. Cuba aparece en la franja inferior del mapa, bajo la Florida, y su tono indica si el mes se inclina cálido o fresco para la isla y sus mares cercanos.</figcaption>
-    <p class="mc-nota clima-fallo" hidden>Este mapa no pudo cargarse ahora mismo. Puede verlo directamente en <a href="https://www.tropicaltidbits.com/analysis/models/?model=nmme&region=us&pkg=T2ma_nmme" target="_blank" rel="noopener">Tropical Tidbits ↗</a>.</p></figure>
-    <p class="mc-nota">Fuente: conjunto multimodelo norteamericano NMME (modelos de NOAA, Canadá y la NASA), mapas regionales de Tropical Tidbits. Ese sitio no permite incrustar sus imágenes desde páginas ajenas, así que cada mapa llega a través de un servicio espejo de imágenes (weserv.nl); si la corrida del mes aún no está publicada, se muestra la del mes anterior.</p>
+    <h3 class="mc-sub">Perspectiva de los próximos tres meses — el NMME dibujado sobre nuestro mapa</h3>
+    <p>Lo que el conjunto norteamericano <b>NMME</b> — la media de los grandes modelos de clima de Norteamérica — espera para este mes y los dos siguientes, dibujado <b>sobre el propio mapa de esta página</b> con los datos que publica el <b>Centro de Predicción Climática (CPC) de la NOAA</b>: cada celda de 1° pinta cuánto se apartaría el mes de lo normal, en la <b>lluvia</b> (mm/día) o en la <b>temperatura</b> (°C). Elija el mes y la variable. Son mapas de tendencia — no el pronóstico de un municipio concreto — y el conjunto se actualiza una vez al mes.</p>
+    <div class="mc-ctl" id="nmmeMeses"><span>Mes:</span></div>
+    <div class="mc-ctl" id="nmmeVars"><span>Variable:</span><button type="button" data-nv="lluvia" class="act">Lluvia</button><button type="button" data-nv="temperatura">Temperatura</button></div>
+    <div class="mc-map2" id="mapNmme"></div>
+    <div class="nmme-ley" id="nmmeLeyenda"></div>
+    <p class="nmme-desc" id="nmmeDesc">Cargando los datos del NMME…</p>
+    <p class="mc-nota" id="nmmeCredito"></p>
+    <p class="mc-nota" id="nmmeFallo" hidden>Los datos del NMME no pudieron cargarse ahora mismo. Puede consultarlos directamente en el <a href="https://www.cpc.ncep.noaa.gov/products/NMME/" target="_blank" rel="noopener">Centro de Predicción Climática (CPC/NOAA) ↗</a>.</p>
     <p class="mc-nota">Normales calculadas con el reanálisis ERA5 (Copernicus) para el período 1991–2020, en el punto de cada capital provincial: son la referencia del clima del lugar, no la medición de una estación concreta. «Hoy» es el pronóstico del modelo para la capital (municipio cabecera).</p>
   </section>
 
@@ -3878,66 +3885,186 @@ function pintarSituacion(){
   mc2CargarEst().then(function(){ pintarSitEst(); pintarEstaciones(); });
 }
 
-/* ---------- CLIMA · MAPAS MENSUALES NMME DE TROPICAL TIDBITS (v11) ----------
-   Jorge (29-oct): los mapas mundiales del CPC salen de esta sección porque
-   en ellos Cuba no se distingue; entran los mapas REGIONALES del NMME que
-   dibuja Tropical Tidbits (EE. UU., golfo y Caribe), los mismos que él
-   revisa en esa página: anomalía de la lluvia mensual acumulada
-   (apcpna_month) y anomalía de la TEMPERATURA DEL AIRE a 2 m (T2ma) —
-   con lo que además queda resuelta la salvedad de la v10: ya no hace
-   falta el mapa de temperatura del mar del CPC, porque este sí es del aire.
-   Patrón real de URL del sitio, extraído de su página de modelos:
-   tropicaltidbits.com/analysis/models/nmme/{corrida}/nmme_{producto}_nmme_us_{n}.png
-   con corrida = AAAAMM0800 (la corrida climática se fecha el día 8 de cada
-   mes) y n = meses desde la corrida + 1: n=2 es el mes siguiente al de la
-   corrida (el «mes próximo» de esta sección).
-   Tropical Tidbits BLOQUEA la incrustación directa desde cualquier sitio
-   ajeno (HTTP 403 a todo Referer que no sea el suyo; verificado el
-   29-oct), así que la imagen se pide a través del espejo de imágenes
-   weserv.nl, que la sirve sin esa restricción. Recambio mensual: al abrir
-   la sección se prueba la corrida del mes en curso y, si aún no está
-   publicada (aparece en los primeros días del mes), se baja a la del mes
-   anterior y a la de hace dos meses; la etiqueta «mes válido» de cada pie
-   se ajusta a la corrida que cargó. Si ninguna carga, la imagen se oculta
-   y queda el aviso con enlace a la página del modelo. Nada de esto usa la
-   cuota del servicio de pronóstico. */
-var climaMapasInit = false;
-function ttCorrida(desfase){
-  var d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + desfase);
-  var mm = d.getMonth() + 1;
-  var v = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-  return { sello: d.getFullYear() + "" + (mm < 10 ? "0" : "") + mm + "0800",
-           valido: MESES[v.getMonth()] + " de " + v.getFullYear() };
+/* ---------- CLIMA · NMME PROPIO CON DATOS DEL CPC (v16) ----------
+   Jorge (30-oct, tras ver el prototipo de la investigación): fuera los
+   mapas incrustados de Tropical Tidbits; la sección dibuja la anomalía
+   mensual del conjunto NMME sobre el PROPIO mapa del portal, con los
+   datos del CPC. El navegador NO puede leer los NetCDF del CPC (su
+   servidor no envía cabeceras CORS — verificado en la investigación),
+   así que los datos llegan en un archivo propio, clima-nmme.json,
+   servido desde el MISMO dominio de la página: lo genera un relevo
+   mensual (día 10) desde los .anom.nc de ENSMEAN de
+   ftp.cpc.ncep.noaa.gov (carpeta realtime_anom/ENSMEAN). Esquema del
+   JSON (exacto en estructura-v16.md): rejilla de 1° sobre la ventana
+   del Caribe 10–30 °N, 90–70 °O (21×21, filas de norte a sur) y, por
+   cada mes objetivo 0, 1 y 2 de la corrida, las rejillas de anomalía
+   de lluvia (mm/día) y de temperatura (°C). Pronóstico rodante a tres
+   meses: el selector ofrece los tres meses objetivo con sus nombres
+   reales; al abrir se muestra el mes objetivo 1 (el primer mes
+   completo tras la inicialización). Si clima-nmme.json falla, la
+   sección muestra una nota honesta con enlace al CPC — no se vuelve
+   a Tropical Tidbits. Nada de esto usa la cuota del servicio de
+   pronóstico: es un único archivo del propio dominio, cargado solo
+   al abrir la sección y guardado en memoria para la visita. */
+var nmmeS = { datos: null, mes: 1, variable: "lluvia", map: null, celdas: null, limites: null, init: false,
+              diag: { celdas: 0, mes: null, variable: null, colores: {}, descripcion: "" } };
+var NMME_ESC = {
+  lluvia: [
+    { hasta: -2, color: "#543005", etq: "−2 o menos" }, { hasta: -1, color: "#8c510a", etq: "−2 a −1" },
+    { hasta: -0.5, color: "#bf812d", etq: "−1 a −0,5" }, { hasta: -0.25, color: "#dfc27d", etq: "−0,5 a −0,25" },
+    { hasta: 0.25, color: "#f2f2f2", etq: "−0,25 a +0,25 · casi normal" }, { hasta: 0.5, color: "#c7e9c0", etq: "+0,25 a +0,5" },
+    { hasta: 1, color: "#a6dba0", etq: "+0,5 a +1" }, { hasta: 2, color: "#5aae61", etq: "+1 a +2" },
+    { hasta: Infinity, color: "#006837", etq: "+2 o más" } ],
+  temperatura: [
+    { hasta: -2, color: "#313695", etq: "−2 o menos" }, { hasta: -1, color: "#4575b4", etq: "−2 a −1" },
+    { hasta: -0.5, color: "#74add1", etq: "−1 a −0,5" }, { hasta: -0.25, color: "#abd9e9", etq: "−0,5 a −0,25" },
+    { hasta: 0.25, color: "#f7f7f7", etq: "−0,25 a +0,25 · casi normal" }, { hasta: 0.5, color: "#fee090", etq: "+0,25 a +0,5" },
+    { hasta: 1, color: "#fdae61", etq: "+0,5 a +1" }, { hasta: 2, color: "#f46d43", etq: "+1 a +2" },
+    { hasta: Infinity, color: "#d73027", etq: "+2 o más" } ]
+};
+function nmmeColor(variable, v){
+  var esc = NMME_ESC[variable];
+  for (var i = 0; i < esc.length; i++) if (v < esc[i].hasta) return esc[i].color;
+  return esc[esc.length - 1].color;
 }
-function ttCargarMapa(img, tallo){
-  var fig = img.closest("figure"), fallo = fig ? fig.querySelector(".clima-fallo") : null;
-  var intentos = [];
-  for (var k = 0; k < 3; k++){
-    var c = ttCorrida(-k);
-    intentos.push({ url: "https://images.weserv.nl/?url=www.tropicaltidbits.com/analysis/models/nmme/" + c.sello + "/nmme_" + tallo + "_nmme_us_2.png", valido: c.valido });
-  }
-  var i = 0;
-  (function paso(){
-    if (i >= intentos.length){
-      img.style.display = "none";
-      if (fallo) fallo.hidden = false;
-      return;
+function nmmeNum(v, dec){
+  return (v < 0 ? "−" : "+") + Math.abs(v).toFixed(dec).replace(".", ",");
+}
+function nmmeFechaDatos(s){
+  var p = String(s || "").split("-");
+  if (p.length !== 3) return s;
+  return (+p[2]) + " de " + MESES[(+p[1]) - 1] + " de " + p[0];
+}
+function nmmeStats(grid){
+  var lats = nmmeS.datos.rejilla.latitudes, lons = nmmeS.datos.rejilla.longitudes;
+  function media(f){
+    var s = 0, n = 0;
+    for (var r = 0; r < grid.length; r++) for (var c = 0; c < grid[r].length; c++){
+      var la = lats[r], lo = lons[c];
+      if (la >= 19.5 && la <= 23.5 && lo >= -85.5 && lo <= -73.5 && f(la, lo)){ s += grid[r][c]; n++; }
     }
-    var cand = intentos[i++];
-    var sonda = new Image();
-    sonda.onload = function(){
-      img.src = cand.url;
-      if (fig) fig.querySelectorAll("[data-clima-mes]").forEach(function(s){ s.textContent = cand.valido; });
-    };
-    sonda.onerror = paso;
-    sonda.src = cand.url;
-  })();
+    return n ? s / n : 0;
+  }
+  return { todo: media(function(){ return true; }),
+           norte: media(function(la){ return la >= 21.8; }),
+           sur: media(function(la){ return la < 21.8; }),
+           este: media(function(la, lo){ return lo >= -77; }),
+           oeste: media(function(la, lo){ return lo <= -80; }) };
 }
-function initClimaMapas(){
-  if (climaMapasInit) return; climaMapasInit = true;
-  var a = $("climaImgLluvia"); if (a) ttCargarMapa(a, "apcpna_month");
-  var b = $("climaImgTemp"); if (b) ttCargarMapa(b, "T2ma");
+function nmmeDescribir(mes){
+  var grid = mes[nmmeS.variable], st = nmmeStats(grid), m = st.todo, txt;
+  if (nmmeS.variable === "lluvia"){
+    var frase = m >= 0.6 ? "un mes <b>más lluvioso de lo normal</b>"
+      : m >= 0.25 ? "un mes <b>algo más lluvioso de lo normal</b>"
+      : m > -0.25 ? "un mes con la lluvia <b>muy cerca de lo normal</b>"
+      : m > -0.6 ? "un mes <b>algo más seco de lo normal</b>" : "un mes <b>más seco de lo normal</b>";
+    txt = "Para <b>" + mes.nombre + "</b>, el conjunto NMME espera " + frase +
+      " en Cuba: la anomalía media sobre la isla y sus mares cercanos es de " + nmmeNum(m, 2) + " mm/día.";
+    var secs = [["la costa norte", st.norte], ["el sur", st.sur], ["el este", st.este], ["el oeste", st.oeste]];
+    secs.sort(function(a, b){ return b[1] - a[1]; });
+    if (secs[0][1] - secs[3][1] >= 0.4)
+      txt += " Donde más se aparta de lo normal es en " + secs[0][0] + " (media de " + nmmeNum(secs[0][1], 2) +
+        " mm/día); donde menos, en " + secs[3][0] + " (" + nmmeNum(secs[3][1], 2) + " mm/día).";
+    else txt += " La señal se reparte de forma parecida por todo el país, sin grandes contrastes entre regiones.";
+  } else {
+    var fraseT = m >= 0.6 ? "un mes <b>más cálido de lo normal</b>"
+      : m >= 0.25 ? "un mes <b>algo más cálido de lo normal</b>"
+      : m > -0.25 ? "un mes con la temperatura <b>muy cerca de lo normal</b>"
+      : m > -0.6 ? "un mes <b>algo más fresco de lo normal</b>" : "un mes <b>más fresco de lo normal</b>";
+    txt = "Para <b>" + mes.nombre + "</b>, el conjunto NMME espera " + fraseT +
+      " en Cuba: la anomalía media sobre la isla y sus mares cercanos es de " + nmmeNum(m, 1) + " °C.";
+    var secsT = [["el este", st.este], ["el oeste", st.oeste], ["la costa norte", st.norte], ["el sur", st.sur]];
+    secsT.sort(function(a, b){ return b[1] - a[1]; });
+    if (secsT[0][1] - secsT[3][1] >= 0.3)
+      txt += " La parte más cálida sería " + secsT[0][0] + " (" + nmmeNum(secsT[0][1], 1) +
+        " °C de media); la menos cálida, " + secsT[3][0] + " (" + nmmeNum(secsT[3][1], 1) + " °C).";
+    else txt += " El apartamiento de lo normal se reparte de forma parecida por todo el país.";
+  }
+  if (mes.objetivo === 0)
+    txt += " <i>Es el mes de inicialización de la corrida: cuando el NMME lo publicó, el mes ya iba en curso.</i>";
+  return txt;
 }
+function nmmeLeyenda(){
+  var el = $("nmmeLeyenda"); if (!el) return;
+  var esc = NMME_ESC[nmmeS.variable];
+  el.innerHTML = "<b>" + (nmmeS.variable === "lluvia" ? "Anomalía de lluvia (mm/día)" : "Anomalía de temperatura (°C)") + ":</b> " +
+    esc.map(function(e){ return "<span class=\"it\"><span class=\"sw\" style=\"background:" + e.color + "\"></span>" + e.etq + "</span>"; }).join("");
+}
+function nmmePintar(){
+  if (!nmmeS.datos || !nmmeS.map) return;
+  var mes = nmmeS.datos.meses[nmmeS.mes], grid = mes[nmmeS.variable];
+  var lats = nmmeS.datos.rejilla.latitudes, lons = nmmeS.datos.rejilla.longitudes;
+  if (nmmeS.celdas){ nmmeS.map.removeLayer(nmmeS.celdas); nmmeS.celdas = null; }
+  if (nmmeS.limites){ nmmeS.map.removeLayer(nmmeS.limites); nmmeS.limites = null; }
+  var grupo = L.layerGroup(), colores = {};
+  for (var r = 0; r < grid.length; r++) for (var c = 0; c < grid[r].length; c++){
+    var col = nmmeColor(nmmeS.variable, grid[r][c]);
+    colores[col] = (colores[col] || 0) + 1;
+    grupo.addLayer(L.rectangle([[lats[r] - 0.5, lons[c] - 0.5], [lats[r] + 0.5, lons[c] + 0.5]],
+      { stroke: false, fillColor: col, fillOpacity: 0.78 }));
+  }
+  nmmeS.celdas = grupo; grupo.addTo(nmmeS.map);
+  nmmeS.limites = L.layerGroup([
+    L.geoJSON(CUBA_GEOJSON, { style: { color: "#06283d", weight: 2.8, fill: false, opacity: 0.85 } }),
+    L.geoJSON(CUBA_GEOJSON, { style: { color: "#ffffff", weight: 1.2, fill: false, opacity: 0.95 } })
+  ]);
+  nmmeS.limites.addTo(nmmeS.map);
+  nmmeLeyenda();
+  var desc = $("nmmeDesc"); if (desc) desc.innerHTML = nmmeDescribir(mes);
+  nmmeS.diag = { celdas: grid.length * (grid[0] ? grid[0].length : 0), mes: mes.nombre,
+                 variable: nmmeS.variable, colores: colores,
+                 descripcion: desc ? desc.textContent : "" };
+}
+function nmmeMontar(){
+  var d = nmmeS.datos;
+  var idx1 = d.meses.findIndex(function(m){ return m.objetivo === 1; });
+  nmmeS.mes = idx1 >= 0 ? idx1 : 0;
+  var box = $("nmmeMeses");
+  if (box){
+    box.innerHTML = "<span>Mes:</span>" + d.meses.map(function(m, i){
+      return "<button type=\"button\" data-nm=\"" + i + "\"" + (i === nmmeS.mes ? " class=\"act\"" : "") + ">" + m.nombre + "</button>";
+    }).join("");
+    box.querySelectorAll("button").forEach(function(b){
+      b.addEventListener("click", function(){
+        nmmeS.mes = +b.dataset.nm;
+        box.querySelectorAll("button").forEach(function(x){ x.classList.toggle("act", x === b); });
+        nmmePintar();
+      });
+    });
+  }
+  var cred = $("nmmeCredito");
+  if (cred) cred.innerHTML = "Datos: conjunto <b>NMME</b> del Centro de Predicción Climática (<b>CPC/NOAA</b>)" +
+    " — media multimodelo (ENSMEAN) de las anomalías mensuales, dibujada por esta página sobre su propio mapa." +
+    " Corrida inicializada en <b>" + d.corrida.inicializacion + "</b> (datos del " + nmmeFechaDatos(d.corrida.fechaDatos) +
+    "); el conjunto se actualiza una vez al mes. Cita que pide el CPC: Kirtman et al. (2014), el proyecto NMME.";
+  nmmeS.map = L.map("mapNmme", { scrollWheelZoom: false, zoomSnap: 0.25, zoomDelta: 0.5 });
+  L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    { maxZoom: 12, attribution: "© Esri · Datos: NMME — CPC/NOAA" }).addTo(nmmeS.map);
+  try { nmmeS.map.fitBounds([[9.4, -90.6], [30.6, -69.4]]); }
+  catch(e){ nmmeS.map.setView([20, -80], 5); }
+  nmmePintar();
+  setTimeout(function(){ try { nmmeS.map.invalidateSize(); } catch(e){} }, 400);
+}
+async function initClimaMapas(){
+  if (nmmeS.init) return; nmmeS.init = true;
+  try {
+    var r = await fetch("clima-nmme.json", { cache: "force-cache" });
+    if (!r || !r.ok) throw new Error("HTTP " + (r && r.status));
+    nmmeS.datos = await r.json();
+  } catch(e) {
+    var f = $("nmmeFallo"); if (f) f.hidden = false;
+    var dsc = $("nmmeDesc"); if (dsc) dsc.textContent = "";
+    return;
+  }
+  nmmeMontar();
+}
+document.querySelectorAll("#nmmeVars button").forEach(function(b){
+  b.addEventListener("click", function(){
+    document.querySelectorAll("#nmmeVars button").forEach(function(x){ x.classList.toggle("act", x === b); });
+    nmmeS.variable = b.dataset.nv;
+    nmmePintar();
+  });
+});
 
 /* ---------- SITUACIÓN ACTUAL · RESUMEN TROPICAL DEL NHC (v10; breve desde v11) ----------
    Jorge pidió (29-oct) añadir a Situación actual la perspectiva del
@@ -5992,7 +6119,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v15",
+  version: "v16",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
@@ -6009,8 +6136,7 @@ window.MC_V2 = {
   ciclonesMapa: function(){ return cicS.diag; },
   severoDiag: function(){ return sevS.diag; },
   analisisDiag: function(){ return anaS.diag; },
-  ttCorrida: ttCorrida,
-  cargarMapaTT: ttCargarMapa,
+  nmmeDiag: function(){ return nmmeS.diag; },
   valorEnRejilla: function(j){ return (modS.lastData && modS.lastData[j]) ? modS.lastData[j][modS.lastHIdx] : null; },
   estado: function(){
     return { init: Object.keys(initHecho), vista: vistaActual, situacion: sitListo,
