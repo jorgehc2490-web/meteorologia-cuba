@@ -3722,7 +3722,7 @@ setTimeout(function(){ clearInterval(esperaMotor); }, 120000);
 /* ---------- navegación principal v3: una vista a la vez (por toque) ---------- */
 var initHecho = {};
 var vistaActual = "inicio";
-var VISTAS_MC = ["inicio","situacion","avisos","satelite","radares","modelos","ciclones","clima","salud","agro","estaciones"];
+var VISTAS_MC = ["inicio","situacion","avisos","satelite","radares","modelos","ciclones","clima","salud","agro","estaciones","creador"];
 function marcarNav(n){
   document.querySelectorAll("#mcNav a").forEach(function(a){ a.classList.toggle("act", a.dataset.nav === n); });
 }
@@ -6268,7 +6268,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v19",
+  version: "v20",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
