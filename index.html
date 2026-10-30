@@ -82,8 +82,10 @@
   #chips button.act .dot { box-shadow:0 0 0 1.5px rgba(10,47,71,.28); }
 
   /* ===== barra de modo fenómeno ===== */
-  #modoBar { position:absolute; top:122px; left:10px; right:10px; z-index:1180; margin:0; padding:9px 12px; background:rgba(234,243,250,.95); border:1px solid #9fc3dd; border-radius:12px; font-size:13px; color:#0b3a57; display:flex; align-items:center; gap:10px; flex-wrap:wrap; box-shadow:0 6px 20px rgba(0,0,0,.28); }
+  /* v15: la barra va EN FLUJO, encima del mapa (ya no flota sobre él) */
+  #modoBar { margin:10px 0 12px; padding:9px 12px; background:rgba(234,243,250,.95); border:1px solid #9fc3dd; border-radius:12px; font-size:13px; color:#0b3a57; display:flex; align-items:center; gap:10px; flex-wrap:wrap; box-shadow:0 2px 8px rgba(0,0,0,.12); }
   #modoBar button { margin-left:auto; border:1px solid #0f5d8f; background:#0f5d8f; color:#fff; border-radius:7px; padding:6px 12px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  #modoBar .btnX { margin-left:0; background:#fff; color:#0b3a57; border:1px solid #9fc3dd; font-weight:700; line-height:1; padding:6px 9px; }
   .recModo { display:block; margin-top:6px; background:#fff8e1; border:1px solid #e3cf8a; color:#5b4a08; border-radius:8px; padding:7px 9px; font-size:13px; line-height:1.45; }
 
   /* ===== botones y popovers del mapa (Capas / Leyenda) ===== */
@@ -238,7 +240,6 @@
     .dias { align-self:stretch; }
     .dias button { flex:1 1 0; padding-left:4px; padding-right:4px; }
     .dockChips { top:118px; }
-    #modoBar { top:168px; }
   }
 
 </style>
@@ -387,6 +388,15 @@
   .nv-bien { background:#2ca25f; } .nv-cuidado { background:#e6a817; color:#3d2c00; } .nv-alerta { background:#d7301f; }
   .anom-pos { color:#c22525; font-weight:700; } .anom-neg { color:#1f6fb2; font-weight:700; }
   .sal-ciudades { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  /* v15: buscador de municipios de salud (sugerencias en flujo, como el principal) */
+  .sal-busca { margin:10px 0 2px; }
+  .sal-sug-it { display:flex; align-items:baseline; gap:8px; width:100%; min-height:48px; padding:12px 14px; background:#fff; border:none; border-bottom:1px solid #e3ebf0; font:inherit; font-size:16px; color:#17394d; text-align:left; cursor:pointer; }
+  .sal-sug-it:last-child { border-bottom:none; }
+  .sal-sug-it .nm { font-weight:700; }
+  .sal-sug-it .pr { margin-left:auto; font-size:13px; color:#5b7a8d; white-space:nowrap; }
+  .sal-sug-it:active { background:#e8f2f9; }
+  .sal-mun-tit { font-size:15px; font-weight:700; color:#0a2f47; margin:12px 0 6px; }
+  .sal-mun-tit .prv { font-weight:400; color:#5b7a8d; font-size:13px; }
   .sal-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; }
   .sal-card { border:1px solid #e1ebf1; border-radius:10px; padding:10px 12px; background:#fbfdff; }
   .sal-card .m { font-size:14px; font-weight:700; color:#0a2f47; display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -441,10 +451,16 @@
   .cic-lbl-tor span { display:block; font-size:10.5px; font-weight:700; }
   /* v12 · bloque de tiempo severo (HRRR Caribe) */
   .sev-fig { margin:14px 0; }
-  .sev-fig img { width:100%; height:auto; display:block; border:1px solid #d9e4ea; border-radius:10px; background:#fff; }
+  /* v15: el mapa se recorta por abajo en la fila 592 de la imagen (712×676):
+     justo bajo la costa sur de Cuba (~19,4 °N); fuera la franja sur sobrante.
+     La barra de colores va en una segunda franja con el mismo truco. */
+  .sevCrop { position:relative; overflow:hidden; aspect-ratio:712/592; border:1px solid #d9e4ea; border-bottom:none; border-radius:10px 10px 0 0; background:#fff; }
+  .sevCrop img { position:absolute; left:0; top:0; width:100%; height:auto; display:block; }
+  .sevBar { position:relative; overflow:hidden; aspect-ratio:712/70; border:1px solid #d9e4ea; border-top:none; border-radius:0 0 10px 10px; background:#fff; }
+  .sevBar img { position:absolute; left:0; bottom:0; width:100%; height:auto; display:block; }
   .sev-fig figcaption { font-size:13.5px; line-height:1.55; color:#24455c; margin-top:7px; }
   .sev-fig figcaption b { color:#0a2f47; }
-  .sev-exp { background:#fdf3e0; border:1px solid #ecd9a8; border-radius:8px; padding:7px 11px; font-size:13px; line-height:1.5; color:#6b5510; }
+  .sev-nota { font-size:13px; line-height:1.5; color:#5a7186; margin:2px 0 4px; }
   .mod-panel { position:absolute; left:8px; bottom:8px; background:rgba(6,40,63,.88); color:#fff; padding:4px 12px; border-radius:8px; font-size:12.5px; font-weight:700; z-index:800; pointer-events:none; box-shadow:0 1px 5px rgba(0,0,0,.35); }
   .mod-canvas { position:absolute; inset:0; pointer-events:none; }
   input[type=range].mc-range { flex:1 1 180px; accent-color:#0d4066; }
@@ -517,6 +533,7 @@
   </section>
 <div class="mc-sec-cab-mapa" id="avisos"><h2>🗺️ Avisos · Mapa interactivo</h2><p>El semáforo de riesgo por municipio y provincia: 9 peligros con niveles de Jorge, para hoy, mañana y pasado mañana. Toque un fenómeno para verlo solo en el mapa; toque un municipio o una provincia para su detalle y recomendaciones.</p></div>
 <div class="dockChips fenCab"><div id="chips"></div></div>
+  <div id="modoBar" class="oculto"></div>
   <section class="hero">
     <div id="map"></div>
     <div class="topbar">
@@ -531,7 +548,6 @@
     <button data-dia="2">Pasado mañana<small></small></button>
   </div>
     </div>
-    <div id="modoBar" class="oculto"></div>
     <div class="mapBtns">
       <button class="mapBtn zoomBtn" id="btnZoomMas" type="button" aria-label="Acercar el mapa">+</button>
       <button class="mapBtn zoomBtn" id="btnZoomMenos" type="button" aria-label="Alejar el mapa">−</button>
@@ -709,7 +725,7 @@
 
   <section class="mc-sec" id="satelite" aria-label="Satélite">
     <div class="mc-sec-cab"><h2>🛰️ Satélite</h2><span class="mc-sec-fecha">GOES-Este · NASA GIBS</span></div>
-    <p>Imagen del satélite GOES-Este sobre el Caribe y Cuba. <b>GeoColor</b> muestra las nubes como se verían de día; el <b>infrarrojo</b> permite seguirlas de noche (los topes más fríos y altos, en color, delatan tormentas fuertes). La animación recorre las últimas imágenes disponibles. Los límites de provincias van dibujados sobre la imagen (al ampliar el mapa se ven también los municipios); puede quitarlos con el botón «Límites».</p>
+    <p>Imagen del satélite GOES-Este sobre el Caribe y Cuba: <b>GeoColor</b> de día e <b>infrarrojo</b> de noche, con la animación de las últimas imágenes disponibles. Los límites de provincias (y de municipios al ampliar el mapa) van dibujados sobre la imagen; puede quitarlos con el botón «Límites».</p>
     <div class="mc-ctl"><span>Imagen:</span><span id="satSecTipos"><button data-st="geo" class="act" type="button">GeoColor</button><button data-st="ir" type="button">Infrarrojo</button></span><button id="satSecPlay" type="button">⏸ Pausar</button><button id="satSecLim" type="button" class="act">Límites: Sí</button><span class="mc-hora" id="satSecHora">Sin cargar: se activa al abrir esta sección.</span></div>
     <div class="mc-map2" id="mapSat"></div>
     <p class="mc-nota">Fuente: NASA GIBS (satélite GOES-Este de NOAA). También puede ver el satélite como capa del <a href="#avisos">mapa de avisos</a>.</p>
@@ -731,7 +747,7 @@
 
   <section class="mc-sec" id="modelos" aria-label="Modelos de pronóstico">
     <div class="mc-sec-cab"><h2>🧭 Modelos de pronóstico</h2><span class="mc-sec-fecha" id="modValidez"></span></div>
-    <p>Los tres grandes modelos numéricos <b>dibujados</b> sobre Cuba, como en los visores profesionales: el campo se pinta <b>continuo sobre el satélite</b>, con <b>líneas de flujo animadas</b> (temperatura y presión) o <b>barbas de viento</b> (viento y rachas). Elija el modelo y la variable, y mueva el deslizador o pulse <b>▶ Animar</b> para avanzar en el tiempo (hasta +120 horas). Los valores sobre las capitales se leen de la propia rejilla del modelo. Al <b>ampliar el mapa</b> aparecen los <b>municipios con el valor</b> de la variable en cada uno, y la variable <b>Acumulado</b> suma la lluvia desde ahora hasta la hora elegida. Con los botones de <b>parte del día</b> el campo pasa a la franja de hoy que elija (madrugada, mañana, tarde o noche): en lluvia muestra la <b>suma de la franja</b> y en las demás variables, el valor de su <b>hora central</b>.</p>
+    <p>Los tres modelos (GFS, ECMWF e ICON) <b>dibujados</b> sobre Cuba, con el campo continuo sobre el satélite: elija el modelo y la variable y mueva el deslizador o pulse <b>▶ Animar</b> para avanzar en el tiempo hasta +120 horas. Al <b>ampliar el mapa</b>, cada municipio muestra el valor de la variable elegida, y con los botones de <b>parte del día</b> el campo pasa a la franja de hoy que elija (madrugada, mañana, tarde o noche).</p>
     <div class="mc-ctl"><span>Modelo:</span><span id="modModelos"><button data-mm="gfs_seamless" class="act" type="button">GFS</button><button data-mm="ecmwf_ifs025" type="button">ECMWF</button><button data-mm="icon_seamless" type="button">ICON</button></span></div>
     <div class="mc-ctl"><span>Variable:</span><span id="modVars"><button data-mv="temperature_2m" class="act" type="button">Temperatura</button><button data-mv="precipitation" type="button">Lluvia</button><button data-mv="wind_speed_10m" type="button">Viento</button><button data-mv="wind_gusts_10m" type="button">Rachas</button><button data-mv="pressure_msl" type="button">Presión</button><button data-mv="acumulado" type="button">Acumulado</button></span></div>
     <div class="mc-ctl"><button id="modPlay" type="button">▶ Animar</button><input type="range" class="mc-range" id="modHora" min="0" max="120" step="3" value="0"><span class="mc-hora" id="modEstado">Sin cargar: se activa al abrir esta sección.</span></div>
@@ -741,7 +757,7 @@
     <p class="mc-nota">Datos: salidas de los modelos GFS (NOAA), ECMWF e ICON (DWD). Son salidas de modelo sin corregir: compárelas entre sí y con los <a href="#avisos">avisos</a>, que ya llevan el criterio del meteorólogo. Lluvia = mm de la hora; viento en km/h; presión en hPa al nivel del mar.</p>
     <h3 class="mc-sub">🌩️ Tiempo severo — HRRR Caribe (experimental)</h3>
     <p>El modelo de tormentas <b>HRRR del Caribe</b> (laboratorio GSL de la NOAA; rejilla de unos 3 km que cubre la Florida, Cuba y las Bahamas) corre una vez al día y dibuja, hora a hora, los campos que mejor anticipan el <b>tiempo severo</b>. Los mapas usan el encuadre <b>Florida</b> del laboratorio: Cuba entera, de Pinar del Río a Guantánamo, en el centro y a gran tamaño. Elija el <b>mapa</b> con el selector — el «radar simulado», la reflectividad en altura que delata el granizo, la energía (CAPE), el índice de levantamiento, la humedad de la columna, la cizalladura y la helicidad de ascenso — y la <b>hora de pronóstico</b> con los botones de −3 h/+3 h: todos los mapas son de la misma corrida y, al cambiar de hora, el mapa elegido se vuelve a pedir para esa hora válida.</p>
-    <p class="sev-exp">⚠️ <b>Producto experimental</b> — el propio laboratorio lo ofrece «solo para investigación, no para operaciones» (<i>for research purposes only — not intended for operational use</i>) y sin garantía de continuidad. Es un <b>apoyo al análisis</b>, nunca la base de los avisos de esta página.</p>
+    <p class="sev-nota">Mapas del laboratorio GSL de la NOAA, solo para investigación: son un apoyo al análisis, nunca la base de los avisos de esta página.</p>
     <div class="mc-ctl"><span>Mapa:</span><span id="sevProds"></span></div>
     <div class="mc-ctl"><button id="sevMenos" type="button">◀ −3 h</button><span class="mc-hora" id="sevEstado">Sin cargar: se activa al abrir esta sección.</span><button id="sevMas" type="button">+3 h ▶</button></div>
     <div id="sevFigs"></div>
@@ -774,13 +790,19 @@
   </section>
 
   <section class="mc-sec" id="salud" aria-label="Tiempo y salud">
-    <div class="mc-sec-cab"><h2>❤️ Tiempo y salud</h2><span class="mc-sec-fecha">Hoy · ciudades principales</span></div>
-    <p>Cómo el tiempo de hoy puede afectar a quienes viven con <b>asma, migraña, alergias, artritis</b> o sensibilidad al <b>polen</b> y a la <b>calidad del aire</b>. Elija su ciudad: los niveles son <span class="nv nv-bien">Bien</span> <span class="nv nv-cuidado">Cuidado</span> <span class="nv nv-alerta">Alerta</span>.</p>
+    <div class="mc-sec-cab"><h2>❤️ Tiempo y salud</h2><span class="mc-sec-fecha">Hoy · las 16 provincias y tu municipio</span></div>
+    <p>Cómo el tiempo de hoy puede afectar a quienes viven con <b>asma, migraña, alergias, artritis</b> o sensibilidad al <b>polen</b> y a la <b>calidad del aire</b>. Busque su municipio o toque su provincia (cada provincia se calcula en el punto de su capital): los niveles son <span class="nv nv-bien">Bien</span> <span class="nv nv-cuidado">Cuidado</span> <span class="nv nv-alerta">Alerta</span>.</p>
+    <div class="sal-busca">
+      <div class="mc-busca-row"><input id="salBusca" type="text" placeholder="Busque su municipio: ej. Caimanera, Trinidad, Moa…" autocomplete="off"><button id="salBuscaBtn" type="button">Ver</button></div>
+      <div id="salSug" class="mc-sug oculto"></div>
+      <div class="mc-busca-msg" id="salBuscaMsg"></div>
+    </div>
+    <div id="saludMunRes" class="oculto"></div>
     <div class="sal-ciudades" id="saludCiudades"></div>
     <div class="sal-grid" id="saludGrid"><p class="mc-nota">Cargando los datos de salud…</p></div>
-    <h3 class="mc-sub">Todas las ciudades de un vistazo</h3>
-    <div class="mc-tabla-wrap"><table class="mc-tabla" id="saludTabla"><thead><tr><th>Ciudad</th><th>Asma</th><th>Migraña</th><th>Alergias</th><th>Polen*</th><th>Artritis</th><th>Aire (AQI)</th></tr></thead><tbody><tr><td colspan="7">Cargando…</td></tr></tbody></table></div>
-    <p class="mc-nota">Mismo motor de datos que la app <a href="https://tiemposalud.labmetweather.com" target="_blank" rel="noopener">TiempoSalud ↗</a> (modelos numéricos + calidad del aire CAMS): allí tiene el detalle por ciudad y por horas. *El polen es un <b>índice estimado</b> por estación del año, viento, humedad y lluvia — Cuba no tiene una red pública de conteo de polen —. Estos niveles son una guía general, no un consejo médico.</p>
+    <h3 class="mc-sub">Todas las provincias de un vistazo</h3>
+    <div class="mc-tabla-wrap"><table class="mc-tabla" id="saludTabla"><thead><tr><th>Provincia</th><th>Asma</th><th>Migraña</th><th>Alergias</th><th>Polen*</th><th>Artritis</th><th>Aire (AQI)</th></tr></thead><tbody><tr><td colspan="7">Cargando…</td></tr></tbody></table></div>
+    <p class="mc-nota">Mismo motor de datos que la app <a href="https://tiemposalud.labmetweather.com" target="_blank" rel="noopener">TiempoSalud ↗</a> (modelos numéricos + calidad del aire CAMS): allí tiene el detalle por localidad y por horas. *El polen es un <b>índice estimado</b> por estación del año, viento, humedad y lluvia — Cuba no tiene una red pública de conteo de polen —. Estos niveles son una guía general, no un consejo médico.</p>
   </section>
 
   <section class="mc-sec" id="agro" aria-label="Agrometeorología">
@@ -1304,6 +1326,7 @@ let mapa = null, capaProv = null, capasPorId = {}, etiquetas = [];
 let capaNiebla = null; // puntos por zona de los peligros de tierra, visibles en su modo
 let franjas = []; // franjas costeras: {prov, costa:"N"|"S"|"C", linea}
 let modoPeligro = null;      // clave del peligro activo (modo peligro) o null
+let mcBarClave = null;       // v15: «fenómeno|día» para el que Jorge cerró la barra de aviso
 let sateliteActivo = false;  // satélite encendido
 let radarActivo = false;     // radar encendido (con el satélite, activa la vista sin rellenos de alerta)
 let owmActivo = false;       // capa «Tiempo hoy» (OpenWeatherMap) encendida: misma vista sin rellenos
@@ -1802,16 +1825,25 @@ function pintar(){
   document.getElementById("listaTitulo").textContent = modoPeligro
     ? "Provincias — " + PEL_NOM[modoPeligro]
     : "Provincias por nivel de riesgo";
-  if (modoPeligro){
+  const claveBar = modoPeligro ? (modoPeligro + "|" + diaSel) : null;
+  if (modoPeligro && mcBarClave !== claveBar){
     bar.classList.remove("oculto");
     bar.innerHTML = "<span>Mapa y lista muestran solo: <b>" + PEL_NOM[modoPeligro] + "</b> (" + DIAS_TXT[diaSel].toLowerCase() + ")</span>" +
       (modoPeligro === "niebla" ? "<span> · Cada municipio se pinta según su visibilidad: la niebla se concentra en el interior y en las costas suele ni formarse</span>"
         : modoPeligro === "ciclon" ? "<span> · Cada municipio se pinta según su distancia al ciclón: el nivel baja al alejarse del centro</span>"
         : PEL_TIERRA.includes(modoPeligro) ? "<span> · Cada municipio se pinta con el color de su nivel en esa zona</span>" : "") +
       (function(){ let mx = 0; for (const rr of resultados[diaSel]){ const v = rr.res[modoPeligro]; if (v && v.n !== null && v.n > mx) mx = v.n; } return (mx >= 1 && RECO[modoPeligro] && RECO[modoPeligro][mx]) ? '<span class="recModo"><b>' + PEL_NOM[modoPeligro] + " · nivel " + nomNivel(modoPeligro, mx) + ":</b> " + RECO[modoPeligro][mx] + "</span>" : ""; })() +
-      '<button id="btnTodos">Ver todos los peligros</button>';
+      '<button id="btnTodos">Ver todos los peligros</button>' +
+      '<button id="btnCerrarBar" class="btnX" type="button" aria-label="Cerrar este aviso" title="Cerrar">✕</button>';
     document.getElementById("btnTodos").addEventListener("click", salirModoPeligro);
+    document.getElementById("btnCerrarBar").addEventListener("click", () => {
+      mcBarClave = claveBar;
+      bar.classList.add("oculto");
+    });
+  } else if (modoPeligro){
+    bar.classList.add("oculto");
   } else {
+    mcBarClave = null;
     bar.classList.add("oculto");
     bar.innerHTML = "";
   }
@@ -5468,16 +5500,24 @@ function sevBuildFigs(){
     const fig = document.createElement("figure");
     fig.className = "sev-fig"; fig.dataset.prod = p.id;
     fig.style.display = (p.id === sevS.sel) ? "" : "none";
+    const crop = document.createElement("div");
+    crop.className = "sevCrop"; crop.style.display = "none";
     const img = document.createElement("img");
-    img.alt = p.nombre; img.style.display = "none"; img.loading = "lazy";
+    img.alt = p.nombre; img.loading = "lazy";
+    crop.appendChild(img);
+    const barW = document.createElement("div");
+    barW.className = "sevBar"; barW.style.display = "none";
+    const imgBar = document.createElement("img");
+    imgBar.alt = ""; imgBar.loading = "lazy"; imgBar.setAttribute("aria-hidden", "true");
+    barW.appendChild(imgBar);
     const cap = document.createElement("figcaption");
     cap.innerHTML = "<b>" + p.nombre + ".</b> " + p.desc + ' <span class="sev-val"></span>';
     const fallo = document.createElement("p");
     fallo.className = "mc-error"; fallo.hidden = true;
     fallo.textContent = "Este mapa no cargó desde el servidor del laboratorio; los demás siguen disponibles.";
-    fig.appendChild(img); fig.appendChild(cap); fig.appendChild(fallo);
+    fig.appendChild(crop); fig.appendChild(barW); fig.appendChild(cap); fig.appendChild(fallo);
     wrap.appendChild(fig);
-    sevS.figs[p.id] = { def: p, el: fig, imgEl: img, valEl: cap.querySelector(".sev-val"), falloEl: fallo, estado: "pendiente", fcstOk: null };
+    sevS.figs[p.id] = { def: p, el: fig, imgEl: img, cropEl: crop, barEl: barW, barImgEl: imgBar, valEl: cap.querySelector(".sev-val"), falloEl: fallo, estado: "pendiente", fcstOk: null };
     sevS.diag.figuras[p.id] = "pendiente";
   });
   sevS.diag.orden = SEV_PRODS.map(p => p.id);
@@ -5498,10 +5538,11 @@ async function sevCargarFigura(f){
   const ok = await sevHayMapa(sevS.corrida, f.def.pt, sevS.fcst);
   if (ok){
     f.imgEl.src = sevURLImg(sevS.corrida, f.def.pt, sevS.fcst);
-    f.imgEl.style.display = ""; f.falloEl.hidden = true; f.estado = "ok"; f.fcstOk = sevS.fcst;
+    f.barImgEl.src = f.imgEl.src;
+    f.cropEl.style.display = ""; f.barEl.style.display = ""; f.falloEl.hidden = true; f.estado = "ok"; f.fcstOk = sevS.fcst;
     f.valEl.textContent = sevValidezTxt();
   } else {
-    f.imgEl.style.display = "none"; f.falloEl.hidden = false; f.estado = "fallo"; f.fcstOk = null;
+    f.cropEl.style.display = "none"; f.barEl.style.display = "none"; f.falloEl.hidden = false; f.estado = "fallo"; f.fcstOk = null;
     f.valEl.textContent = "";
   }
   sevS.diag.figuras[f.def.id] = f.estado;
@@ -5597,7 +5638,11 @@ function pintarClima(){
 }
 
 /* ---------- TIEMPO Y SALUD (motor de TiempoSalud) ---------- */
-var SAL_CIUD = [["La Habana",23.11,-82.37],["Pinar del Río",22.42,-83.69],["Matanzas",23.05,-81.58],["Santa Clara",22.41,-79.96],["Camagüey",21.38,-77.92],["Holguín",20.89,-76.26],["Santiago de Cuba",20.02,-75.83],["Guantánamo",20.14,-75.21]];
+/* v15: las 16 provincias, cada una representada por el punto de su
+   municipio capital (las coordenadas de ese municipio en MUNICIPIOS;
+   La Habana usa el punto de la provincia y la Isla el de su municipio).
+   Antes solo había 8 ciudades. [provincia, capital, lat, lon] */
+var SAL_PROV = [["Pinar del Río","Pinar del Río",22.355,-83.573],["Artemisa","Artemisa",22.748,-82.798],["La Habana","La Habana",23.114,-82.367],["Mayabeque","San José de las Lajas",22.904,-82.136],["Matanzas","Matanzas",23.045,-81.614],["Cienfuegos","Cienfuegos",22.100,-80.537],["Villa Clara","Santa Clara",22.345,-79.942],["Sancti Spíritus","Sancti Spíritus",21.800,-79.534],["Ciego de Ávila","Ciego de Ávila",21.830,-78.809],["Camagüey","Camagüey",21.417,-77.956],["Las Tunas","Las Tunas",20.952,-77.009],["Holguín","Holguín",20.899,-76.290],["Granma","Bayamo",20.423,-76.664],["Santiago de Cuba","Santiago de Cuba",20.017,-75.669],["Guantánamo","Guantánamo",20.286,-75.145],["Isla de la Juventud","Nueva Gerona",21.690,-82.814]];
 var SAL_MALES = [["asma","Asma"],["migrana","Migraña"],["alergias","Alergias"],["polen","Polen*"],["artritis","Artritis"],["aire","Calidad del aire"]];
 var SAL_REC = {
   asma: { bien: "El aire de hoy no debería molestar.", cuidado: "Si tiene asma, lleve su inhalador de rescate y evite el ejercicio fuerte al aire libre en las horas de más humedad o calor.", alerta: "Día desfavorable: reduzca el esfuerzo al aire libre y tenga la medicación a mano." },
@@ -5653,9 +5698,7 @@ function senalesSalud(day, prev, lat){
   return { day: day, dp: dp, aqi: aqi, pol: pol, migrana: migrana, artritis: artritis, alergias: alergias, asma: asma, polen: polen, aire: aire };
 }
 function nvChip(n){ return '<span class="nv nv-' + n + '">' + (n === "bien" ? "Bien" : n === "cuidado" ? "Cuidado" : "Alerta") + "</span>"; }
-function pintarSalud(){
-  if (!salDatos) return;
-  var s = salDatos[salSel]; if (!s) return;
+function saludCardsHTML(s){
   var datos = {
     asma: "AQI máximo de hoy: " + s.aqi + " · humedad media " + Math.round(s.day.humMean) + " %",
     migrana: "Oscilación de presión hoy: " + f1(s.dp) + " hPa",
@@ -5664,18 +5707,27 @@ function pintarSalud(){
     artritis: "Humedad media: " + Math.round(s.day.humMean) + " % · presión media " + Math.round(s.day.pMean) + " hPa",
     aire: "AQI máximo de hoy: " + s.aqi + " (escala de EE. UU.)"
   };
-  $("saludGrid").innerHTML = SAL_MALES.map(function(m){
+  return SAL_MALES.map(function(m){
     return '<div class="sal-card"><div class="m">' + m[1] + " " + nvChip(s[m[0]]) + '</div><div class="d">' + datos[m[0]] + '</div><div class="r">' + SAL_REC[m[0]][s[m[0]]] + "</div></div>";
   }).join("");
+}
+function salProvEtiqueta(ci){
+  var p = SAL_PROV[ci];
+  return p[1] === p[0] ? p[0] : p[0] + " (" + p[1] + ")";
+}
+function pintarSalud(){
+  if (!salDatos) return;
+  var s = salDatos[salSel]; if (!s) return;
+  $("saludGrid").innerHTML = saludCardsHTML(s);
   var tb = document.querySelector("#saludTabla tbody");
   tb.innerHTML = salDatos.map(function(sd, ci){
-    if (!sd) return "<tr><td><b>" + SAL_CIUD[ci][0] + "</b></td><td colspan='6'>Sin datos</td></tr>";
-    return "<tr><td><b>" + SAL_CIUD[ci][0] + "</b></td>" + SAL_MALES.map(function(m){ return "<td>" + nvChip(sd[m[0]]) + "</td>"; }).join("") + "</tr>";
+    if (!sd) return "<tr><td><b>" + salProvEtiqueta(ci) + "</b></td><td colspan='6'>Sin datos</td></tr>";
+    return "<tr><td><b>" + salProvEtiqueta(ci) + "</b></td>" + SAL_MALES.map(function(m){ return "<td>" + nvChip(sd[m[0]]) + "</td>"; }).join("") + "</tr>";
   }).join("");
 }
 async function initSalud(){
   if (salInit) return; salInit = true;
-  var la = SAL_CIUD.map(function(c){ return c[1]; }).join(","), lo = SAL_CIUD.map(function(c){ return c[2]; }).join(",");
+  var la = SAL_PROV.map(function(c){ return c[2]; }).join(","), lo = SAL_PROV.map(function(c){ return c[3]; }).join(",");
   var uF = "https://api.open-meteo.com/v1/forecast?latitude=" + la + "&longitude=" + lo +
     "&hourly=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,precipitation&timezone=America%2FHavana&past_days=1&forecast_days=2";
   var uA = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=" + la + "&longitude=" + lo +
@@ -5688,13 +5740,13 @@ async function initSalud(){
   if (A && !Array.isArray(A)) A = [A];
   var hoy = hoyISO();
   var ayer = new Date(Date.now() - 86400000).toLocaleDateString("en-CA", { timeZone: "America/Havana" });
-  salDatos = SAL_CIUD.map(function(c, ci){
+  salDatos = SAL_PROV.map(function(c, ci){
     var agg = aggSalud(F[ci], A ? A[ci] : null);
     var day = agg[hoy]; if (!day) return null;
-    return senalesSalud(day, agg[ayer], c[1]);
+    return senalesSalud(day, agg[ayer], c[2]);
   });
-  $("saludCiudades").innerHTML = SAL_CIUD.map(function(c, ci){
-    return '<button type="button" data-ci="' + ci + '"' + (ci === 0 ? ' class="act"' : "") + ">" + c[0] + "</button>";
+  $("saludCiudades").innerHTML = SAL_PROV.map(function(c, ci){
+    return '<button type="button" data-ci="' + ci + '" title="Punto de la capital: ' + c[1] + '"' + (ci === 0 ? ' class="act"' : "") + ">" + c[0] + "</button>";
   }).join("");
   document.querySelectorAll("#saludCiudades button").forEach(function(b){
     b.addEventListener("click", function(){
@@ -5702,7 +5754,106 @@ async function initSalud(){
       salSel = +b.dataset.ci; pintarSalud();
     });
   });
+  cablearBuscaSalud();
   pintarSalud();
+}
+
+/* ---------- v15: buscador de municipios en Tiempo y salud ----------
+   El usuario escribe su municipio (los 168 de MUNICIPIOS, con el mismo
+   autocompletado y la misma lógica de coincidencias del buscador
+   principal, aquí sobre MC2_NOMBRES/normT, que son los nombres al
+   alcance de este script) y la situación de salud se calcula EN EL
+   PUNTO de ese municipio, solo al elegirlo (una localidad = las
+   llamadas contadas de sus dos peticiones) y queda cacheada en
+   memoria para no repetir la petición en la misma visita. */
+var salMunCache = {};
+function salNormTxt(s){ return normT(s).replace(/\s+/g, " ").trim(); }
+var SAL_NORMS = null;
+function salNorms(){ if (!SAL_NORMS) SAL_NORMS = MC2_NOMBRES.map(salNormTxt); return SAL_NORMS; }
+function salSugerencias(txt){
+  var q = salNormTxt(txt); if (q.length < 2) return [];
+  var NS = salNorms(), pre = [], pal = [], den = [];
+  for (var k = 0; k < NS.length; k++){
+    var n = NS[k];
+    if (n.indexOf(q) === 0) pre.push(k);
+    else if (n.indexOf(" " + q) >= 0) pal.push(k);
+    else if (n.indexOf(q) >= 0) den.push(k);
+  }
+  return pre.concat(pal, den).slice(0, 8);
+}
+function salBuscarIndice(txt){
+  var q = salNormTxt(txt); if (!q) return -1;
+  var NS = salNorms();
+  var i = NS.indexOf(q); if (i >= 0) return i;
+  for (var k = 0; k < NS.length; k++) if (NS[k].indexOf(q) === 0) return k;
+  for (var k2 = 0; k2 < NS.length; k2++) if (NS[k2].indexOf(q) >= 0) return k2;
+  return -1;
+}
+async function saludDePunto(lat, lon){
+  var clave = lat.toFixed(3) + "," + lon.toFixed(3);
+  if (salMunCache[clave]) return salMunCache[clave];
+  var uF = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon +
+    "&hourly=temperature_2m,relative_humidity_2m,pressure_msl,wind_speed_10m,precipitation&timezone=America%2FHavana&past_days=1&forecast_days=2";
+  var uA = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=" + lat + "&longitude=" + lon +
+    "&hourly=us_aqi&timezone=America%2FHavana&past_days=1&forecast_days=2";
+  var F = null, A = null;
+  try { F = await (await fetch(uF)).json(); } catch(e){}
+  try { A = await (await fetch(uA)).json(); } catch(e){}
+  if (Array.isArray(F)) F = F[0];
+  if (Array.isArray(A)) A = A[0];
+  var s = null;
+  if (F){
+    var agg = aggSalud(F, A);
+    var hoy = hoyISO();
+    var ayer = new Date(Date.now() - 86400000).toLocaleDateString("en-CA", { timeZone: "America/Havana" });
+    var day = agg[hoy];
+    if (day) s = senalesSalud(day, agg[ayer], lat);
+  }
+  if (s) salMunCache[clave] = s;
+  return s;
+}
+async function elegirMunSalud(i){
+  var m = MUNICIPIOS[i]; if (!m) return;
+  var res = $("saludMunRes"); if (!res) return;
+  res.classList.remove("oculto");
+  res.innerHTML = '<p class="mc-nota">Cargando la situación de salud de ' + MC2_NOMBRES[i] + "…</p>";
+  var s = await saludDePunto(m[2], m[3]);
+  if (!s){ res.innerHTML = '<p class="mc-nota">No se pudo cargar la situación de ' + MC2_NOMBRES[i] + " en este momento. Inténtelo de nuevo en un rato.</p>"; return; }
+  res.innerHTML = '<p class="sal-mun-tit">' + MC2_NOMBRES[i] + ' <span class="prv">· ' + m[1] + " · calculado en el punto del municipio</span></p>" +
+    '<div class="sal-grid">' + saludCardsHTML(s) + "</div>";
+}
+function cerrarSalSug(){ var sug = $("salSug"); if (sug){ sug.classList.add("oculto"); sug.innerHTML = ""; } }
+function pintarSalSug(){
+  var inp = $("salBusca"), sug = $("salSug"); if (!inp || !sug) return;
+  var lista = salSugerencias(inp.value);
+  if (!lista.length){ cerrarSalSug(); return; }
+  sug.innerHTML = lista.map(function(i){
+    return '<button type="button" class="sal-sug-it" data-mi="' + i + '"><span class="nm">' + MC2_NOMBRES[i] + '</span><span class="pr">' + MUNICIPIOS[i][1] + "</span></button>";
+  }).join("");
+  sug.classList.remove("oculto");
+  sug.querySelectorAll(".sal-sug-it").forEach(function(b){
+    b.addEventListener("click", function(){
+      var i = +b.dataset.mi;
+      inp.value = MC2_NOMBRES[i];
+      cerrarSalSug();
+      $("salBuscaMsg").textContent = "";
+      elegirMunSalud(i);
+    });
+  });
+}
+function intentarBuscaSalud(){
+  var inp = $("salBusca"); if (!inp) return;
+  var i = salBuscarIndice(inp.value);
+  if (i >= 0){ $("salBuscaMsg").textContent = ""; cerrarSalSug(); elegirMunSalud(i); }
+  else if (inp.value.trim()) $("salBuscaMsg").textContent = "No se encontró ese municipio. Pruebe con el nombre, por ejemplo «Caimanera» o «Trinidad».";
+}
+var salBuscaLista = false;
+function cablearBuscaSalud(){
+  if (salBuscaLista) return; salBuscaLista = true;
+  var inp = $("salBusca"); if (!inp) return;
+  inp.addEventListener("input", pintarSalSug);
+  inp.addEventListener("keydown", function(e){ if (e.key === "Enter"){ e.preventDefault(); intentarBuscaSalud(); } });
+  $("salBuscaBtn").addEventListener("click", intentarBuscaSalud);
 }
 
 /* ---------- AGROMETEOROLOGÍA (v10: por provincias y por decenas) ----------
@@ -5841,7 +5992,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v14",
+  version: "v15",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
