@@ -648,8 +648,8 @@
 
   <section class="mc-sec" id="satelite" aria-label="Satélite">
     <div class="mc-sec-cab"><h2>🛰️ Satélite</h2><span class="mc-sec-fecha">GOES-Este · NASA GIBS</span></div>
-    <p>Imagen del satélite GOES-Este sobre el Caribe y Cuba. <b>GeoColor</b> muestra las nubes como se verían de día; el <b>infrarrojo</b> permite seguirlas de noche (los topes más fríos y altos, en color, delatan tormentas fuertes). La animación recorre las últimas imágenes disponibles.</p>
-    <div class="mc-ctl"><span>Imagen:</span><span id="satSecTipos"><button data-st="geo" class="act" type="button">GeoColor</button><button data-st="ir" type="button">Infrarrojo</button></span><button id="satSecPlay" type="button">⏸ Pausar</button><span class="mc-hora" id="satSecHora">Sin cargar: se activa al abrir esta sección.</span></div>
+    <p>Imagen del satélite GOES-Este sobre el Caribe y Cuba. <b>GeoColor</b> muestra las nubes como se verían de día; el <b>infrarrojo</b> permite seguirlas de noche (los topes más fríos y altos, en color, delatan tormentas fuertes). La animación recorre las últimas imágenes disponibles. Los límites de provincias van dibujados sobre la imagen (al ampliar el mapa se ven también los municipios); puede quitarlos con el botón «Límites».</p>
+    <div class="mc-ctl"><span>Imagen:</span><span id="satSecTipos"><button data-st="geo" class="act" type="button">GeoColor</button><button data-st="ir" type="button">Infrarrojo</button></span><button id="satSecPlay" type="button">⏸ Pausar</button><button id="satSecLim" type="button" class="act">Límites: Sí</button><span class="mc-hora" id="satSecHora">Sin cargar: se activa al abrir esta sección.</span></div>
     <div class="mc-map2" id="mapSat"></div>
     <p class="mc-nota">Fuente: NASA GIBS (satélite GOES-Este de NOAA). También puede ver el satélite como capa del <a href="#avisos">mapa de avisos</a>.</p>
   </section>
@@ -3770,7 +3770,8 @@ function pintarSituacion(){
 }
 
 /* ---------- SATÉLITE (sección propia) ---------- */
-var satS = { map: null, capas: [], timer: null, idx: 0, tipo: "geo", pausa: false, init: false };
+var satS = { map: null, capas: [], timer: null, idx: 0, tipo: "geo", pausa: false, init: false,
+  limites: true, limProv: null, limProvFilo: null, limMun: null, limMunFilo: null, encuadre: null, tocado: false, encuadrando: false };
 function satSLimpiar(){ if (satS.timer) clearInterval(satS.timer); satS.timer = null; if (satS.map) satS.capas.forEach(function(l){ satS.map.removeLayer(l); }); satS.capas = []; }
 function satSMostrar(){
   if (!satS.capas.length) return;
@@ -3791,10 +3792,82 @@ async function satSMontar(){
   satS.idx = satS.capas.length - 1; satSMostrar();
   satS.timer = setInterval(function(){ if (!satS.pausa && satS.capas.length){ satS.idx = (satS.idx + 1) % satS.capas.length; satSMostrar(); } }, 900);
 }
+/* Límites sobre el satélite (corrección v9, pedida por Jorge el 29-oct al
+   ver la v8 en la vista previa): sin contornos, el lector no puede ubicarse
+   sobre la imagen. Provincias siempre; municipios al ampliar (zoom ≥ 8),
+   como en Modelos. Doble trazo —filo oscuro ancho debajo y línea clara
+   fina encima— para que se lean igual sobre GeoColor (día, fondo claro)
+   que sobre el infrarrojo (noche, fondo oscuro). Sin relleno y en un panel
+   propio por encima de las teselas y ajeno a la animación: los límites
+   quedan fijos mientras las imágenes cambian debajo. */
+function satBoundsCuba(){
+  var w = 180, s = 90, e = -180, n = -90;
+  function walk(c){
+    if (typeof c[0] === "number"){
+      if (c[0] < w) w = c[0]; if (c[0] > e) e = c[0];
+      if (c[1] < s) s = c[1]; if (c[1] > n) n = c[1];
+    } else for (var i = 0; i < c.length; i++) walk(c[i]);
+  }
+  CUBA_GEOJSON.features.forEach(function(f){ walk(f.geometry.coordinates); });
+  var r3 = function(x){ return Math.round(x * 1000) / 1000; };
+  return [[r3(s), r3(w)], [r3(n), r3(e)]];
+}
+function satSCrearLimites(){
+  satS.encuadre = satBoundsCuba();
+  var base = { pane: "satLimPane", interactive: false, fill: false };
+  satS.limProvFilo = L.geoJSON(CUBA_GEOJSON, Object.assign({}, base, { style: { color: "#06283d", weight: 3.6, opacity: 0.9 } }));
+  satS.limProv = L.geoJSON(CUBA_GEOJSON, Object.assign({}, base, { style: { color: "#fffbe9", weight: 1.5, opacity: 0.97 } }));
+  /* Municipios: la misma conversión de MUN_GEO que usa la capa municipal
+     del portal (anillos planos [lon, lat, …] → pares [lon, lat]). */
+  var feats = [];
+  for (var mi = 0; mi < MUNICIPIOS.length; mi++){
+    if (!MUN_GEO[mi] || !MUN_GEO[mi].length) continue;
+    var coords = MUN_GEO[mi].map(function(poly){
+      return poly.map(function(ring){
+        var par = [];
+        for (var i = 0; i < ring.length; i += 2) par.push([ring[i], ring[i + 1]]);
+        return par;
+      });
+    });
+    feats.push({ type: "Feature", properties: { mi: mi }, geometry: { type: "MultiPolygon", coordinates: coords } });
+  }
+  var fc = { type: "FeatureCollection", features: feats };
+  satS.limMunFilo = L.geoJSON(fc, Object.assign({}, base, { style: { color: "#06283d", weight: 2, opacity: 0.85 } }));
+  satS.limMun = L.geoJSON(fc, Object.assign({}, base, { style: { color: "#fffbe9", weight: 0.8, opacity: 0.9 } }));
+  satSActLimites();
+}
+function satSActLimites(){
+  if (!satS.map) return;
+  var verMun = satS.limites && satS.map.getZoom() >= 8;
+  [[satS.limProvFilo, satS.limites], [satS.limProv, satS.limites], [satS.limMunFilo, verMun], [satS.limMun, verMun]].forEach(function(par){
+    if (!par[0]) return;
+    if (par[1]){ if (!satS.map.hasLayer(par[0])) par[0].addTo(satS.map); }
+    else if (satS.map.hasLayer(par[0])) satS.map.removeLayer(par[0]);
+  });
+}
+function satSEncuadrar(){
+  if (!satS.map || !satS.encuadre) return;
+  satS.encuadrando = true;
+  try { satS.map.fitBounds(satS.encuadre, { padding: [10, 10] }); } catch(e){}
+  satS.encuadrando = false;
+}
 function initSatelite(){
   if (satS.init) return; satS.init = true;
-  satS.map = L.map("mapSat", { scrollWheelZoom: false }).setView([21.6, -79.3], 6);
+  satS.map = L.map("mapSat", { scrollWheelZoom: false, zoomSnap: 0.25, zoomDelta: 0.5 }).setView([21.6, -79.3], 6);
+  satS.map.createPane("satLimPane");
+  satS.map.getPane("satLimPane").style.zIndex = 650;
+  satS.map.getPane("satLimPane").style.pointerEvents = "none";
   L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 12, attribution: "© Esri · GOES: NASA GIBS / NOAA" }).addTo(satS.map);
+  satSCrearLimites();
+  /* Encuadre inicial (corrección v9): Cuba COMPLETA con margen, como en el
+     mapa de Avisos — antes abría centrado en el Caribe amplio y la isla
+     quedaba pegada a un borde. Si el lector mueve o amplía, su vista se
+     respeta: el reajuste de los 400 ms solo corre si aún no ha tocado el
+     mapa (mismo seguro que usa el mapa de Avisos tras el primer pintado). */
+  satSEncuadrar();
+  setTimeout(function(){ if (!satS.tocado){ try { satS.map.invalidateSize(); } catch(e){} satSEncuadrar(); } }, 400);
+  satS.map.on("movestart zoomstart", function(){ if (!satS.encuadrando) satS.tocado = true; });
+  satS.map.on("zoomend", satSActLimites);
   satSMontar();
 }
 document.querySelectorAll("#satSecTipos button").forEach(function(b){
@@ -3804,6 +3877,12 @@ document.querySelectorAll("#satSecTipos button").forEach(function(b){
   });
 });
 $("satSecPlay").addEventListener("click", function(e){ satS.pausa = !satS.pausa; e.target.textContent = satS.pausa ? "▶ Reanudar" : "⏸ Pausar"; });
+$("satSecLim").addEventListener("click", function(e){
+  satS.limites = !satS.limites;
+  e.target.textContent = satS.limites ? "Límites: Sí" : "Límites: No";
+  e.target.classList.toggle("act", satS.limites);
+  satSActLimites();
+});
 
 /* ---------- RADARES (sección propia) ---------- */
 var radS = { map: null, capas: [], timer: null, idx: 0, pausa: false, init: false };
@@ -4664,7 +4743,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v8",
+  version: "v9",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
@@ -4682,6 +4761,14 @@ window.MC_V2 = {
     return { init: Object.keys(initHecho), vista: vistaActual, situacion: sitListo,
       estaciones: estLista ? estLista.length : 0, salud: !!salDatos, agro: agroListo, ciclones: cicListo,
       satCapas: satS.capas.length, radCapas: radS.capas.length,
+      satIdx: satS.idx,
+      satLimites: { activo: satS.limites, encuadre: satS.encuadre, paneZ: 650,
+        prov: satS.limProv ? satS.limProv.getLayers().length : 0,
+        mun: satS.limMun ? satS.limMun.getLayers().length : 0,
+        provEnMapa: !!(satS.map && satS.limProv && satS.map.hasLayer(satS.limProv)),
+        munEnMapa: !!(satS.map && satS.limMun && satS.map.hasLayer(satS.limMun)),
+        estiloProv: (satS.limProv && satS.limProv.getLayers().length) ? satS.limProv.getLayers()[0].options : null,
+        estiloMun: (satS.limMun && satS.limMun.getLayers().length) ? satS.limMun.getLayers()[0].options : null },
       modelos: { modelo: modS.model, variable: modS.variable, hora: modS.hour, capa: !!modS.layer, ciudades: modS.cities ? modS.cities.getLayers().length : 0,
         rejilla: MODNX * MODNY, overlay: modS.diag.overlay, barbas: modS.diag.barbas,
         particulas: { n: modS.diag.particulas.n, frames: modS.diag.particulas.frames, activa: modS.diag.particulas.activa }, campo: modS.diag.campo } };
