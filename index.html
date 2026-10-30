@@ -4477,6 +4477,27 @@ function radSMostrar(){
 async function initRadares(){
   if (radS.init) return; radS.init = true;
   radS.map = L.map("mapRad", { scrollWheelZoom: false }).setView([21.6, -79.3], 6);
+  /* v23: encuadre cerca de Cuba (la ventana aprobada para Clima) y marcas
+     de provincias y municipios sobre el mosaico, con las geometrías del
+     mapa de Avisos. */
+  try { radS.map.fitBounds([[18.9, -87.4], [25.1, -71.6]]); } catch(e){}
+  try {
+    if (typeof MUN_GEO !== "undefined" && typeof MUNICIPIOS !== "undefined"){
+      var featsR = [];
+      for (var miR = 0; miR < MUNICIPIOS.length; miR++){
+        if (!MUN_GEO[miR] || !MUN_GEO[miR].length) continue;
+        var coordsR = MUN_GEO[miR].map(function(poly){ return poly.map(function(ring){
+          var par = []; for (var i2 = 0; i2 < ring.length; i2 += 2) par.push([ring[i2], ring[i2 + 1]]);
+          return par;
+        }); });
+        featsR.push({ type: "Feature", properties: {}, geometry: { type: "MultiPolygon", coordinates: coordsR } });
+      }
+      L.geoJSON({ type: "FeatureCollection", features: featsR },
+        { interactive: false, style: { color: "#4a6b7d", weight: 0.4, opacity: 0.55, fillOpacity: 0 } }).addTo(radS.map);
+    }
+    if (typeof CUBA_GEOJSON !== "undefined")
+      L.geoJSON(CUBA_GEOJSON, { interactive: false, style: { color: "#26455a", weight: 1.3, opacity: 0.9, fillOpacity: 0 } }).addTo(radS.map);
+  } catch(e){}
   L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 12, attribution: "© Esri · Radar: RainViewer" }).addTo(radS.map);
   var j = null;
   if (typeof radarDatos !== "undefined" && radarDatos) j = radarDatos;
@@ -6272,7 +6293,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v22",
+  version: "v23",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
