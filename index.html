@@ -5029,6 +5029,10 @@ async function modRender(){
 function initModelos(){
   if (modS.init) return; modS.init = true;
   modS.map = L.map("mapMod", { scrollWheelZoom: false }).setView([21.6, -79.3], 6);
+  /* v22: encuadre cerrado a la rejilla del pronóstico (mismo margen que el
+     análisis de superficie): la vista ancha del Caribe dejaba la rejilla
+     como un rectángulo flotando en el centro y se veía extraño. */
+  try { modS.map.fitBounds([[MODG.lat0 - 0.4, MODG.lon0 - 0.4], [MODG.lat1 + 0.4, MODG.lon1 + 0.4]]); } catch(e){}
   L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 12, attribution: "© Esri · Modelos numéricos" }).addTo(modS.map);
   modS.map.on("moveend zoomend resize", function(){
     modMunDrawDeb();
@@ -6268,7 +6272,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v21",
+  version: "v22",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
