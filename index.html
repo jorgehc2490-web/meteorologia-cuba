@@ -654,9 +654,10 @@
 
       <h2 class="sec">Análisis propio a partir del modelo</h2>
   <div class="panel">
-    <p style="margin-top:2px">Nuestro <b>propio análisis de superficie</b>, dibujado en esta página desde la rejilla del modelo: <b>isobaras cada 4 hPa</b> con su valor, los <b>centros de alta (A) y de baja (B)</b> que el campo de presión define, con su presión central, y las <b>barbas de viento</b> en superficie. No es el análisis oficial de ningún centro: es la lectura directa del campo del modelo, sin frentes dibujados a mano.</p>
+    <p style="margin-top:2px">Nuestro <b>propio análisis de superficie</b>, dibujado en esta página desde la rejilla del modelo: <b>isobaras</b> con su valor —cada <b>4 hPa</b>, el paso estándar, o cada <b>2 hPa</b> con el selector bajo el mapa, para los días de gradiente débil en que con 4 apenas se dibuja alguna línea—, los <b>centros de alta (A) y de baja (B)</b> que el campo de presión define, con su presión central, y las <b>barbas de viento</b> en superficie. No es el análisis oficial de ningún centro: es la lectura directa del campo del modelo, sin frentes dibujados a mano.</p>
     <div id="anaPropioWrap">
       <div class="anaPropioMap" id="mapAnaPropio"></div>
+      <div class="mc-ctl" style="margin:7px 0 1px"><span>Paso de isobaras:</span><span id="anaPasoBtns"><button data-paso="4" class="act" type="button">4 hPa</button><button data-paso="2" type="button">2 hPa</button></span><span class="mc-hora" id="anaPasoLbl">Isobaras cada 4 hPa · el paso estándar</span></div>
       <p class="ana-persp" id="anaPerspectiva">El análisis se calcula al abrir esta pestaña…</p>
       <p class="videoNota" style="margin-left:0" id="anaPropioPie">Análisis a partir de los modelos numéricos (GFS) · Elaboración: LABMET</p>
     </div>
@@ -5018,9 +5019,16 @@ async function cicMapaInit(){
    ventana 5×5 con profundidad ≥ 0,4 hPa contra el anillo a distancia 2
    (en un campo suave, el vecino inmediato casi no se separa). La
    perspectiva se genera de ese análisis + el apunte del NHC. Nada de
-   frentes dibujados: el campo manda. */
-const anaS = { init: false, cargando: false, map: null, grupo: null, cv: null, uv: null, W: null, hIdx: 0,
-  diag: { niveles: [], polilineas: 0, centros: [], pCuba: null, vientoMax: null, barbas: 0, perspectiva: "", modelo: "" } };
+   frentes dibujados: el campo manda.
+   v13: el paso de isobaras es elegible con el selector bajo el mapa
+   (4 hPa por defecto, el estándar; 2 hPa para los días de gradiente
+   débil, aprobado por Jorge el 30-oct tras la noche del análisis casi
+   sin líneas). Cambiar el paso redibuja SOLO los contornos desde el
+   campo ya cargado (anaS.P), sin llamadas nuevas; centros, barbas y
+   perspectiva quedan como están. */
+const anaS = { init: false, cargando: false, map: null, grupo: null, grupoIso: null, cv: null, uv: null, W: null, P: null, hIdx: 0, paso: 4,
+  diag: { niveles: [], polilineas: 0, centros: [], pCuba: null, vientoMax: null, barbas: 0, perspectiva: "", modelo: "", paso: 4,
+    pasos: { "4": { niveles: [], polilineas: 0 }, "2": { niveles: [], polilineas: 0 } } } };
 function anaGridVals(data, hIdx){
   const V = new Float32Array(MODNX * MODNY);
   for (let j = 0; j < V.length; j++){
@@ -5081,6 +5089,75 @@ function anaContornos(V, nivel){
     lineas.push(linea);
   }
   return lineas;
+}
+function anaNiveles(mn, mx, paso){
+  const out = [];
+  for (let lv = Math.ceil(mn / paso) * paso; lv <= mx; lv += paso) out.push(lv);
+  return out;
+}
+/* Contornos de un paso dado, sin dibujar: niveles, total de polilíneas
+   (las de 2+ puntos, como las que pinta el mapa) y el rótulo de cada
+   nivel sobre su tramo más largo. Sirve para dibujar el paso activo y
+   para contar el inactivo en el diagnóstico. */
+function anaIsoData(P, paso){
+  let mn = Infinity, mx = -Infinity;
+  for (let j = 0; j < P.length; j++){ if (P[j] < mn) mn = P[j]; if (P[j] > mx) mx = P[j]; }
+  const niveles = anaNiveles(mn, mx, paso);
+  let polilineas = 0; const porNivel = [], muestras = [];
+  niveles.forEach(nivel => {
+    const lineas = anaContornos(P, nivel).filter(l => l.length >= 2);
+    polilineas += lineas.length;
+    porNivel.push({ nivel: nivel, lineas: lineas });
+    let mejor = null;
+    lineas.forEach(l => { if (!mejor || l.length > mejor.length) mejor = l; });
+    if (mejor){
+      const mid = mejor[Math.floor(mejor.length / 2)];
+      muestras.push({ nivel: nivel, lat: Math.round((MODG.lat1 - mid[1] * MODSY) * 100) / 100, lon: Math.round((MODG.lon0 + mid[0] * MODSX) * 100) / 100 });
+    }
+  });
+  return { niveles: niveles, polilineas: polilineas, porNivel: porNivel, muestras: muestras };
+}
+/* Redibuja SOLO los contornos (grupo propio anaS.grupoIso) con el paso
+   activo, desde el campo ya cargado: centros, barbas y perspectiva no
+   se tocan. */
+function anaDibujaIsobaras(){
+  if (!anaS.map || !anaS.P) return null;
+  if (anaS.grupoIso) anaS.map.removeLayer(anaS.grupoIso);
+  const d = anaIsoData(anaS.P, anaS.paso);
+  const g = L.layerGroup().addTo(anaS.map);
+  d.porNivel.forEach(nv => {
+    nv.lineas.forEach(linea => {
+      const ll = linea.map(p => [MODG.lat1 - p[1] * MODSY, MODG.lon0 + p[0] * MODSX]);
+      L.polyline(ll, { color: "#ffffff", weight: 3.4, opacity: 0.85 }).addTo(g);
+      L.polyline(ll, { color: "#33566e", weight: 1.3, opacity: 0.95 }).addTo(g);
+    });
+  });
+  d.muestras.forEach(m => {
+    const ic = L.divIcon({ className: "anaIsoWrap", html: '<div class="ana-lbl-iso">' + m.nivel + '</div>', iconSize: [0, 0] });
+    L.marker([m.lat, m.lon], { icon: ic, interactive: false }).addTo(g);
+  });
+  anaS.grupoIso = g;
+  return d;
+}
+function anaActualizaPasoUI(){
+  document.querySelectorAll("#anaPasoBtns button").forEach(b => b.classList.toggle("act", +b.dataset.paso === anaS.paso));
+  const lbl = document.getElementById("anaPasoLbl");
+  if (lbl) lbl.textContent = anaS.paso === 2 ? "Isobaras cada 2 hPa · detalle para gradiente débil" : "Isobaras cada 4 hPa · el paso estándar";
+}
+function anaSetPaso(paso){
+  if (paso !== 2 && paso !== 4) return;
+  anaS.paso = paso;
+  anaS.diag.paso = paso;
+  anaActualizaPasoUI();
+  if (anaS.P && anaS.map){
+    const d = anaDibujaIsobaras();
+    if (d){
+      anaS.diag.niveles = d.niveles;
+      anaS.diag.polilineas = d.polilineas;
+      anaS.diag.muestras = d.muestras;
+      anaS.diag.pasos[String(paso)] = { niveles: d.niveles, polilineas: d.polilineas };
+    }
+  }
 }
 function anaCentros(V){
   const centros = [];
@@ -5213,34 +5290,16 @@ async function initAnaPropio(){
     let B = null;
     try { B = await modFetchGroup(model, "B", dayISO); } catch(e){ B = null; }
     const P = anaGridVals(A.pressure_msl, hIdx), W = anaGridVals(A.wind_speed_10m, hIdx);
-    anaS.uv = B; anaS.W = W; anaS.hIdx = hIdx;
+    anaS.uv = B; anaS.W = W; anaS.P = P; anaS.hIdx = hIdx;
     if (anaS.grupo) anaS.map.removeLayer(anaS.grupo);
     anaS.grupo = L.layerGroup().addTo(anaS.map);
-    let mn = Infinity, mx = -Infinity;
-    for (let j = 0; j < P.length; j++){ if (P[j] < mn) mn = P[j]; if (P[j] > mx) mx = P[j]; }
-    const niveles = [];
-    for (let lv = Math.ceil(mn / 4) * 4; lv <= mx; lv += 4) niveles.push(lv);
-    let nPol = 0;
-    const muestras = [];
-    niveles.forEach(nivel => {
-      const lineas = anaContornos(P, nivel);
-      let mejor = null;
-      lineas.forEach(linea => {
-        if (linea.length < 2) return;
-        const ll = linea.map(p => [MODG.lat1 - p[1] * MODSY, MODG.lon0 + p[0] * MODSX]);
-        L.polyline(ll, { color: "#ffffff", weight: 3.4, opacity: 0.85 }).addTo(anaS.grupo);
-        L.polyline(ll, { color: "#33566e", weight: 1.3, opacity: 0.95 }).addTo(anaS.grupo);
-        nPol++;
-        if (!mejor || linea.length > mejor.length) mejor = linea;
-      });
-      if (mejor){
-        const mid = mejor[Math.floor(mejor.length / 2)];
-        const lat = MODG.lat1 - mid[1] * MODSY, lon = MODG.lon0 + mid[0] * MODSX;
-        const ic = L.divIcon({ className: "anaIsoWrap", html: '<div class="ana-lbl-iso">' + nivel + '</div>', iconSize: [0, 0] });
-        L.marker([lat, lon], { icon: ic, interactive: false }).addTo(anaS.grupo);
-        muestras.push({ nivel: nivel, lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100 });
-      }
-    });
+    /* v13: se cuentan AMBOS pasos para el diagnóstico y se dibuja el
+       activo (4 hPa por defecto) en su grupo propio de contornos. */
+    const pasosDiag = {};
+    [4, 2].forEach(ps => { const dd = anaIsoData(P, ps); pasosDiag[String(ps)] = { niveles: dd.niveles, polilineas: dd.polilineas }; });
+    anaActualizaPasoUI();
+    const isoAct = anaDibujaIsobaras();
+    const niveles = isoAct ? isoAct.niveles : [], nPol = isoAct ? isoAct.polilineas : 0, muestras = isoAct ? isoAct.muestras : [];
     let centros = anaCentros(P);
     let nA = 0, nB = 0;
     centros = centros.filter(cn => {
@@ -5259,7 +5318,7 @@ async function initAnaPropio(){
     if (pie) pie.textContent = "Análisis a partir de los modelos numéricos (" + modNombreModelo(model) + ") · Elaboración: LABMET · Válido: " +
       now.toLocaleString("es", { timeZone: "America/Havana", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " (hora de Cuba)";
     anaS.diag = { niveles: niveles, polilineas: nPol, centros: centros, pCuba: per.pCuba, vientoMax: per.vientoMax,
-      perspectiva: per.texto, modelo: model, muestras: muestras, barbas: 0 };
+      perspectiva: per.texto, modelo: model, muestras: muestras, barbas: 0, paso: anaS.paso, pasos: pasosDiag };
     anaBarbasDraw();
     anaS.init = true;
   } catch(e){
@@ -5271,6 +5330,8 @@ async function initAnaPropio(){
 (function(){
   const btn = document.querySelector('.sheetTabs button[data-sec="analisis"]');
   if (btn) btn.addEventListener("click", () => setTimeout(initAnaPropio, 60));
+  document.querySelectorAll("#anaPasoBtns button").forEach(b => b.addEventListener("click", () => anaSetPaso(+b.dataset.paso)));
+  anaActualizaPasoUI();
   const w = document.getElementById("anaPropioWrap");
   if (w && "IntersectionObserver" in window){
     const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) initAnaPropio(); }, { rootMargin: "200px" });
@@ -5709,7 +5770,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v12",
+  version: "v13",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
