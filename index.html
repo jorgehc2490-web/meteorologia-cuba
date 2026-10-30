@@ -303,6 +303,24 @@
   /* v27: leyenda del mapa de acumulado de lluvia */
   .acuLey { display:flex; flex-wrap:wrap; gap:5px 12px; font-size:11.5px; color:#46617a; margin:7px 2px 0; }
   .acuLey i { display:inline-block; width:13px; height:13px; border-radius:3px; margin-right:4px; vertical-align:-2px; border:1px solid rgba(10,47,71,.25); }
+  /* v29: botones de marca, contacto, pie con patrocinador y redes */
+  .appBtn { display:inline-block; background:#0d4066; color:#fff !important; text-decoration:none !important; border:1.5px solid #ffc63a; border-radius:999px; padding:7px 15px; font-weight:700; font-size:13.5px; margin:0 6px 8px 0; cursor:pointer; font-family:inherit; }
+  .appBtn:hover { background:#0a2f47; }
+  .contactoForm { max-width:520px; margin:6px 0 4px; }
+  .contactoForm label { display:block; font-size:13px; font-weight:700; color:#24455c; margin:0 0 8px; }
+  .contactoForm input, .contactoForm textarea { display:block; width:100%; box-sizing:border-box; margin-top:4px; padding:9px 11px; border:1.5px solid #b9cfdd; border-radius:9px; font:inherit; font-weight:400; background:#fff; color:#12293c; }
+  .contactoNota { display:block; font-size:12px; color:#5b7180; margin-top:6px; }
+  .footSponsor { display:flex; align-items:center; gap:12px; background:linear-gradient(90deg,#0d4066,#0a2f47); border:1.5px solid #ffc63a; border-radius:12px; padding:12px 14px; margin:0 0 14px; }
+  .footSponsor .fs-ico { font-size:22px; color:#ffc63a; }
+  .footSponsor .fs-txt { flex:1 1 auto; }
+  .footSponsor .fs-txt b { display:block; color:#fff; font-size:15px; }
+  .footSponsor .fs-txt small { color:#c8dbe6; font-size:12px; }
+  .footSponsor .fs-btn { background:#ffc63a; color:#0a2f47 !important; text-decoration:none !important; font-weight:800; border-radius:999px; padding:8px 16px; font-size:13.5px; white-space:nowrap; }
+  .redesTit { font-weight:800; color:#fff; letter-spacing:.4px; margin:14px 0 4px !important; }
+  .redBtn { display:inline-block; border:1.5px solid #ffc63a; color:#fff !important; text-decoration:none !important; border-radius:999px; padding:6px 14px; font-weight:700; font-size:13px; margin:0 6px 6px 0; background:rgba(255,255,255,.06); }
+  .redBtn:hover { background:rgba(255,198,58,.18); }
+  .imergBar { height:8px; border-radius:4px; background:linear-gradient(90deg,#009f0f 0%,#8fd600 30%,#ffe600 55%,#ff9000 75%,#ff2a00 90%,#c000c0 100%); max-width:420px; }
+  .imergTicks { display:flex; justify-content:space-between; font-size:10.5px; color:#5b7180; max-width:420px; margin-top:2px; }
   .dockChips.fenCab #chips button.act { background:#0d4066; color:#fff; border-color:#0d4066; }
   .dockChips.fenCab #chips button.act .dot { box-shadow:0 0 0 1.5px rgba(255,255,255,.55); }
   @media (max-width:640px){ .dockChips.fenCab { margin:0 8px 8px; padding:0; } }
@@ -601,6 +619,10 @@
     <div class="mc-map2" id="mapAcu"></div>
     <div class="acuLey"><span><i style="background:#e8f1f6"></i>&lt;1 mm</span><span><i style="background:#a8d8ea"></i>1–5</span><span><i style="background:#6fb3e0"></i>5–10</span><span><i style="background:#3d8bc2"></i>10–20</span><span><i style="background:#1f6fb2"></i>20–35</span><span><i style="background:#5b5bd6"></i>35–50</span><span><i style="background:#7e2a8e"></i>&gt;50 mm</span></div>
     <p class="mc-nota">Suma máxima de lluvia en 24 horas por municipio según el modelo (GFS, vía Open-Meteo): es una <b>estimación del pronóstico</b>, no una medición de pluviómetros.</p>
+    <h3 class="mc-sub">Lluvia estimada por satélite (GPM IMERG · NASA)</h3>
+    <div class="mc-map2" id="mapImerg"></div>
+    <div style="margin-top:7px"><div class="imergBar"></div><div class="imergTicks"><span>0,2</span><span>1</span><span>4</span><span>16+ mm/h</span></div></div>
+    <p class="mc-nota">Estimación satelital de la intensidad de la lluvia (NASA GPM IMERG), actualizada cada 30 minutos: llega donde no hay pluviómetros ni radares. Es una <b>estimación</b>, no una medición de estaciones, y el producto llega con varias horas de retraso. <span id="imergHora2"></span></p>
     <h3 class="mc-sub">Último video de LABMET</h3>
 <a class="ytCard" href="https://www.youtube.com/@labmet" target="_blank" rel="noopener"><span class="ytIco">▶</span><span><b>LABMET en YouTube</b><br><small>@labmet · Ver el canal y sus videos</small></span><span class="ytFlecha">›</span></a>
   <div class="videoWrap"><iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=UU0wTuI-BDkfWldVw5AS2r7Q" title="Último video de LABMET en YouTube" loading="lazy" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; web-share" allowfullscreen></iframe></div>
@@ -871,12 +893,23 @@
           <li>❤️ Salud, que relaciona el tiempo y el clima con el bienestar</li>
         </ul>
         <p><b>Nuestra misión:</b> poner la meteorología profesional al servicio de la población cubana, dentro y fuera de la isla, con información confiable, local y fácil de usar.</p>
-        <p>También de LABMET: <a href="https://www.labmetweather.com" target="_blank" rel="noopener">Avisos Cuba</a> · <a href="https://tiemposalud.labmetweather.com" target="_blank" rel="noopener">TiempoSalud</a> · <a href="https://lunar.labmetweather.com" target="_blank" rel="noopener">Calendario Lunar</a>. Contacto: <a href="mailto:labmet22@gmail.com">labmet22@gmail.com</a>.</p>
+        <p><b>También de LABMET:</b></p>
+        <p><a class="appBtn" href="https://www.labmetweather.com" target="_blank" rel="noopener">🗺️ Avisos Cuba</a><a class="appBtn" href="https://tiemposalud.labmetweather.com" target="_blank" rel="noopener">❤️ TiempoSalud</a><a class="appBtn" href="https://lunar.labmetweather.com" target="_blank" rel="noopener">🌙 Calendario Lunar</a></p>
+        <p><button class="appBtn" id="btnContacto" type="button">✉️ Contactar</button></p>
+        <form class="contactoForm oculto" id="formContacto" action="https://formsubmit.co/labmet22@gmail.com" method="POST">
+          <input type="hidden" name="_subject" value="Contacto desde Meteorología Cuba">
+          <input type="hidden" name="_template" value="table">
+          <label>Tu nombre<input type="text" name="nombre" required></label>
+          <label>Tu correo<input type="email" name="email" required></label>
+          <label>Mensaje<textarea name="mensaje" rows="4" required></textarea></label>
+          <button type="submit" class="appBtn">Enviar mensaje</button>
+          <span class="contactoNota">El mensaje llega al equipo de LABMET y te respondemos a tu correo. Tu dirección no se publica.</span>
+        </form>
       </div>
     </div>
   </section>
 
-  <footer class="mc-foot"><div class="mc-foot-in"><p class="mc-foot-cred">Creado por el meteorólogo MSc. <b>Jorge Félix Hernández Capote</b> · LABMET — Laboratorio Meteorológico</p><p><b>Meteorología Cuba</b> es un servicio informativo <b>independiente</b>, elaborado a partir de modelos numéricos y fuentes públicas de datos. Los avisos oficiales en Cuba los emiten el <b>INSMET</b> y la <b>Defensa Civil</b>: ante peligro, siga sus indicaciones.</p><p class="mc-foot-fuentes">Datos: modelos numéricos (GFS y oleaje) · NOAA / NHC (ciclones) · NASA GIBS e IMERG (satélite y lluvia estimada) · RainViewer (radar) · IEM / NWS (estaciones METAR) · OpenWeatherMap (tiempo hoy) · Datos abiertos de Open-Meteo (CC BY 4.0) · © 2026 Meteorología Cuba · meteorologia-cuba.com</p></div></footer>
+  <footer class="mc-foot"><div class="mc-foot-in"><div class="footSponsor"><span class="fs-ico">★</span><span class="fs-txt"><b>Espacio para patrocinadores</b><small>Tu marca ante la audiencia de LABMET: Cuba, Florida y la diáspora, cada día.</small></span><a class="fs-btn" href="#creador">Contactar</a></div><p class="mc-foot-cred">Creado por el meteorólogo MSc. <b>Jorge Félix Hernández Capote</b> · LABMET — Laboratorio Meteorológico</p><p><b>Meteorología Cuba</b> es un servicio informativo <b>independiente</b>, elaborado a partir de modelos numéricos y fuentes públicas de datos. Los avisos oficiales en Cuba los emiten el <b>INSMET</b> y la <b>Defensa Civil</b>: ante peligro, siga sus indicaciones.</p><p class="mc-foot-fuentes">Datos: modelos numéricos (GFS y oleaje) · NOAA / NHC (ciclones) · NASA GIBS e IMERG (satélite y lluvia estimada) · RainViewer (radar) · IEM / NWS (estaciones METAR) · OpenWeatherMap (tiempo hoy) · Datos abiertos de Open-Meteo (CC BY 4.0) · © 2026 Meteorología Cuba · meteorologia-cuba.com</p><p class="redesTit">Redes de LABMET</p><p><a class="redBtn" href="https://www.youtube.com/@labmet" target="_blank" rel="noopener">▶ YouTube</a><a class="redBtn" href="https://www.facebook.com/373980185791672" target="_blank" rel="noopener">f Facebook</a><a class="redBtn" href="https://www.instagram.com/jorgefelix_met" target="_blank" rel="noopener">◎ Instagram</a><a class="redBtn" href="https://www.tiktok.com/@jorgefelixmeteorologo" target="_blank" rel="noopener">♪ TikTok</a></p></div></footer>
 
 </div>
 
@@ -2126,8 +2159,8 @@ const ANUNCIOS = [
   { nom: "Weather Latino USA · YouTube", txt: "@WeatherLatinoUSA · El tiempo para los hispanos en EE. UU.", url: "https://www.youtube.com/@WeatherLatinoUSA", ico: "▶", col: "#c4302b" },
   { nom: "Jorge Felix Hernández · Instagram", txt: "@jorgefelix_met · 126 mil seguidores", url: "https://www.instagram.com/jorgefelix_met", ico: "◎", col: "#c13584" },
   { nom: "Clima y Tiempo MX · YouTube", txt: "@ClimayTiempoMX · 12,1 mil suscriptores — el pronóstico para México", url: "https://www.youtube.com/@ClimayTiempoMX", ico: "▶", col: "#c4302b" },
-  { nom: "Meteorólogo Jorge Félix Hernández · Facebook", txt: "Síguenos en Facebook para el pronóstico diario", url: "", ico: "f", col: "#1877f2" },
-  { nom: "VITALAIR", txt: "Pronóstico de salud y tiempo: migraña, alergias, asma y calidad del aire", url: "", ico: "✚", col: "#0e7a5f" }
+  { nom: "Meteorólogo Jorge Félix Hernández · Facebook", txt: "Síguenos en Facebook para el pronóstico diario", url: "https://www.facebook.com/373980185791672", ico: "f", col: "#1877f2" },
+  { nom: "TiempoSalud", txt: "Pronóstico de salud y tiempo: migraña, alergias, asma y calidad del aire", url: "https://tiemposalud.labmetweather.com", ico: "✚", col: "#0e7a5f" }
 ];
 let adIdx = 0;
 const impresiones = {}; // veces que se ha mostrado cada anuncio en esta sesión
@@ -3826,6 +3859,35 @@ function pintarAcu(){
     onEachFeature: function(f, l){ var mm = f.properties.mm; l.bindTooltip(acuNombre(f.properties.mi) + (mm == null ? " · sin datos" : " · " + (Math.round(mm * 10) / 10) + " mm en 24 h"), { sticky: true }); }
   }).addTo(acuMapa);
 }
+var bcContacto = document.getElementById("btnContacto"), fcContacto = document.getElementById("formContacto");
+if (bcContacto && fcContacto) bcContacto.addEventListener("click", function(){ fcContacto.classList.toggle("oculto"); });
+var imergMapa = null;
+async function initImerg(){
+  var box = document.getElementById("mapImerg");
+  if (!box || typeof L === "undefined" || imergMapa) return;
+  imergMapa = L.map("mapImerg", { scrollWheelZoom: false, zoomSnap: 0.25, zoomDelta: 0.5 });
+  imergMapa.fitBounds([[18.9, -87.4], [25.1, -71.6]]);
+  L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 12, attribution: "© Esri" }).addTo(imergMapa);
+  try { if (typeof CUBA_GEOJSON !== "undefined" && CUBA_GEOJSON) L.geoJSON(CUBA_GEOJSON, { style: { color: "#26455a", weight: 1.2, fill: false }, interactive: false }).addTo(imergMapa); } catch(e){}
+  try {
+    var xml = await (await fetch("https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/1.0.0/WMTSCapabilities.xml")).text();
+    var t = null, chunks = xml.split("<Layer>");
+    for (var i = 0; i < chunks.length; i++){
+      if (chunks[i].indexOf("<ows:Identifier>IMERG_Precipitation_Rate_30min</ows:Identifier>") >= 0){
+        var m = chunks[i].match(/<Default>([^<]+)<\/Default>/);
+        if (m){ t = m[1]; break; }
+      }
+    }
+    if (!t) throw new Error("sin hora");
+    L.tileLayer("https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/IMERG_Precipitation_Rate_30min/default/" + t + "/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png", { opacity: 0.85, maxNativeZoom: 6 }).addTo(imergMapa);
+    var f = new Date(t), hhmm = f.toISOString().slice(11, 16);
+    var el = document.getElementById("imergHora2");
+    if (el) el.textContent = "Última estimación: " + hhmm + " UTC (" + f.toLocaleTimeString("es", { timeZone: "America/Havana", hour: "2-digit", minute: "2-digit" }) + " hora de Cuba).";
+  } catch(e){
+    var el2 = document.getElementById("imergHora2");
+    if (el2) el2.textContent = "La estimación satelital no está disponible ahora mismo.";
+  }
+}
 function initAnalisis(){
   var box = document.getElementById("mapAcu");
   if (!box || typeof L === "undefined") return;
@@ -3842,9 +3904,11 @@ function initAnalisis(){
     });
   }
   acuReintentos = 0; pintarAcu();
+  initImerg();
 }
 function reajustarMapaAcu(){
   try { if (acuMapa){ acuMapa.invalidateSize(); acuMapa.fitBounds([[18.9, -87.4], [25.1, -71.6]]); } } catch(e){}
+  try { if (imergMapa){ imergMapa.invalidateSize(); imergMapa.fitBounds([[18.9, -87.4], [25.1, -71.6]]); } } catch(e){}
 }
 function reajustarMapaModelos(){
   /* v25: reencuadre al entrar en Modelos. El fitBounds de la creación no
@@ -6064,7 +6128,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v28",
+  version: "v29",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
