@@ -403,6 +403,9 @@
   .creador-foto { width:180px; max-width:60vw; height:auto; border-radius:12px; border:1px solid #e1ebf1; }
   .creador-txt { flex:1 1 320px; font-size:14px; line-height:1.6; color:#24455c; }
   .creador-txt p { margin:0 0 9px; }
+  .creador-rol { font-size:15px; font-weight:700; color:#0d4066; line-height:1.45 !important; }
+  .creador-lista { list-style:none; margin:2px 0 9px; padding:0; }
+  .creador-lista li { margin:3px 0; }
   .sal-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; }
   .sal-card { border:1px solid #e1ebf1; border-radius:10px; padding:10px 12px; background:#fbfdff; }
   .sal-card .m { font-size:14px; font-weight:700; color:#0a2f47; display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -487,8 +490,6 @@
   .mc-nav a { padding:9px 13px; }
   @media (max-width:640px){ #mcInicio { padding:0 8px; } }
 </style>
-<link rel="manifest" href="/manifest.webmanifest">
-<script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 
@@ -769,7 +770,7 @@
     <div id="modLeyenda"></div>
     <p class="mc-nota">Datos: salidas de los modelos GFS (NOAA), ECMWF e ICON (DWD). Son salidas de modelo sin corregir: compárelas entre sí y con los <a href="#avisos">avisos</a>, que ya llevan el criterio del meteorólogo. Lluvia = mm de la hora; viento en km/h; presión en hPa al nivel del mar.</p>
     <h3 class="mc-sub">🌩️ Tiempo severo — HRRR Caribe (experimental)</h3>
-    <p>El modelo de tormentas <b>HRRR del Caribe</b> (laboratorio GSL de la NOAA; rejilla de unos 3 km que cubre la Florida, Cuba y las Bahamas) corre una vez al día y dibuja, hora a hora, los campos que mejor anticipan el <b>tiempo severo</b>. Los mapas usan el encuadre <b>Florida</b> del laboratorio: Cuba entera, de Pinar del Río a Guantánamo, en el centro y a gran tamaño. Elija el <b>mapa</b> con el selector — el «radar simulado», la reflectividad en altura que delata el granizo, la energía (CAPE), el índice de levantamiento, la humedad de la columna, la cizalladura y la helicidad de ascenso — y la <b>hora de pronóstico</b> con los botones de −3 h/+3 h: todos los mapas son de la misma corrida y, al cambiar de hora, el mapa elegido se vuelve a pedir para esa hora válida.</p>
+    <p>El modelo de tormentas <b>HRRR del Caribe</b> (laboratorio GSL de la NOAA; rejilla de unos 3 km que cubre la Florida, Cuba y las Bahamas) corre cuatro veces al día (00, 06, 12 y 18 UTC; aquí se muestra la corrida más reciente disponible) y dibuja, hora a hora, los campos que mejor anticipan el <b>tiempo severo</b>. Los mapas usan el encuadre <b>Florida</b> del laboratorio: Cuba entera, de Pinar del Río a Guantánamo, en el centro y a gran tamaño. Elija el <b>mapa</b> con el selector — el «radar simulado», la reflectividad en altura que delata el granizo, la energía (CAPE), el índice de levantamiento, la humedad de la columna, la cizalladura y la helicidad de ascenso — y la <b>hora de pronóstico</b> con los botones de −3 h/+3 h: todos los mapas son de la misma corrida y, al cambiar de hora, el mapa elegido se vuelve a pedir para esa hora válida.</p>
     <p class="sev-nota">Mapas del laboratorio GSL de la NOAA, solo para investigación: son un apoyo al análisis, nunca la base de los avisos de esta página.</p>
     <div class="mc-ctl"><span>Mapa:</span><span id="sevProds"></span></div>
     <div class="mc-ctl"><button id="sevMenos" type="button">◀ −3 h</button><span class="mc-hora" id="sevEstado">Sin cargar: se activa al abrir esta sección.</span><button id="sevMas" type="button">+3 h ▶</button></div>
@@ -838,10 +839,24 @@
     <div class="creador-flex">
       <img class="creador-foto" src="creador-jorge.jpg" alt="Jorge Félix Hernández Capote, meteorólogo">
       <div class="creador-txt">
-        <p><b>Jorge Félix Hernández Capote</b> es meteorólogo, con maestría en ciencias (MSc.), y el creador de <b>LABMET — Laboratorio Meteorológico</b>. Divulga el pronóstico del tiempo en español en redes sociales y medios digitales, con énfasis en los ciclones tropicales y el tiempo severo que afecta a Cuba, el Caribe y la Florida.</p>
-        <p><b>El objetivo de Meteorología Cuba</b> es que cualquier persona pueda consultar, gratis y en lenguaje claro, el tiempo de su propio municipio: avisos con semáforo de riesgo para diez peligros, pronóstico por horas y por días, ciclones tropicales, satélite, radares y modelos. Todo se elabora en esta página a partir de modelos numéricos y fuentes públicas de datos (NOAA, NASA y Open-Meteo), como un servicio independiente.</p>
-        <p>Es también el creador de <a href="https://www.labmetweather.com" target="_blank" rel="noopener">Avisos Cuba</a>, <a href="https://tiemposalud.labmetweather.com" target="_blank" rel="noopener">TiempoSalud</a> y el <a href="https://lunar.labmetweather.com" target="_blank" rel="noopener">Calendario Lunar</a>. Contacto: <a href="mailto:labmet22@gmail.com">labmet22@gmail.com</a>.</p>
-        <p>— <b>MSc. Jorge Félix Hernández Capote</b> · LABMET, Laboratorio Meteorológico</p>
+        <p class="creador-rol">Jorge Félix Hernández Capote<br>Meteorólogo · Especialista en pronóstico del tiempo · Presentador de TV</p>
+        <p>Soy Licenciado en Meteorología por el Instituto Superior de Tecnologías y Ciencias Aplicadas (INSTEC), Universidad de La Habana, Cuba (2015), y Máster en Ciencias en Hidrometeorología por el CUCEI, Universidad de Guadalajara, México (2023).</p>
+        <p>Durante seis años trabajé como especialista en pronóstico del tiempo en el Instituto de Meteorología de Cuba, donde monitoreé las condiciones del tiempo y analicé imágenes de satélite, radar y modelos numéricos. En paralelo, fui presentador del estado del tiempo en Artemisa Visión, donde escribía los guiones y conducía un programa especializado de meteorología.</p>
+        <p>Desde 2021 llevo esa experiencia a las redes sociales con LABMET, con coberturas en vivo de ciclones tropicales y fenómenos peligrosos. Hoy mi comunidad supera el millón de seguidores.</p>
+        <p>Mi pasión es la ciencia de la atmósfera y mi compromiso es que el pronóstico llegue claro, a tiempo y con rigor a cada familia cubana.</p>
+        <p><b>Objetivo de la página.</b> Meteorología Cuba es una plataforma de pronóstico especializado para Cuba. Reúne en un solo lugar información técnica y de uso diario, explicada de forma que cualquier persona la entienda.</p>
+        <p>Qué encontrarás:</p>
+        <ul class="creador-lista">
+          <li>🔬 Pronóstico especializado elaborado por un meteorólogo profesional</li>
+          <li>📊 Salida de modelos para seguir la evolución del tiempo</li>
+          <li>⚠️ Avisos para Cuba ante distintos fenómenos: ciclones, lluvias intensas, frentes fríos, tormentas locales</li>
+          <li>📍 Pronóstico por provincias y municipios, para saber qué esperar donde vives</li>
+          <li>🌾 Agrometeorología, con información útil para el trabajo del campo</li>
+          <li>🌎 Clima, con análisis de El Niño, La Niña y tendencias</li>
+          <li>❤️ Salud, que relaciona el tiempo y el clima con el bienestar</li>
+        </ul>
+        <p><b>Nuestra misión:</b> poner la meteorología profesional al servicio de la población cubana, dentro y fuera de la isla, con información confiable, local y fácil de usar.</p>
+        <p>También de LABMET: <a href="https://www.labmetweather.com" target="_blank" rel="noopener">Avisos Cuba</a> · <a href="https://tiemposalud.labmetweather.com" target="_blank" rel="noopener">TiempoSalud</a> · <a href="https://lunar.labmetweather.com" target="_blank" rel="noopener">Calendario Lunar</a>. Contacto: <a href="mailto:labmet22@gmail.com">labmet22@gmail.com</a>.</p>
       </div>
     </div>
   </section>
@@ -5599,7 +5614,7 @@ async function initAnaPropio(){
    (displayMapUpdated.cgi), que lo genera en el acto. El bloque lo
    resuelve así: prueba el PNG; si falla, «calienta» pidiendo la página
    del producto (fetch no-cors: no se lee la respuesta, solo dispara la
-   generación) y reintenta. La corrida es diaria (00Z) y el fcst va de
+   generación) y reintenta. Las corridas son 4 al día (00, 06, 12 y 18 UTC — corrección de la v18: la v17 afirmó que solo existía la 00Z tras probar una 12Z aún sin publicar; las cuatro usan el mismo patrón y se generan bajo demanda) y el fcst va de
    0 a 36 h; por defecto se muestra el múltiplo de 3 más cercano a la
    hora actual. La amenaza de rayos y el granizo HAILCAST existen como
    filas del catálogo pero SIN enlace a mapa para este dominio: no se
@@ -5646,8 +5661,24 @@ const SEV_PRODS = [
 ];
 const sevS = { init: false, corrida: null, fcst: 6, sel: "mref", figs: {},
   diag: { corrida: null, fcst: null, seleccionado: "mref", figuras: {}, orden: [] } };
-function sevRuntimeDe(fecha){
-  return fecha.getUTCFullYear() + "" + String(fecha.getUTCMonth() + 1).padStart(2, "0") + String(fecha.getUTCDate()).padStart(2, "0") + "00";
+function sevRuntimeDe(fecha, hora){
+  return fecha.getUTCFullYear() + "" + String(fecha.getUTCMonth() + 1).padStart(2, "0") + String(fecha.getUTCDate()).padStart(2, "0") + String(hora || 0).padStart(2, "0");
+}
+/* v18: el HRRR Caribe corre 4 veces al día (00, 06, 12 y 18 UTC) y las
+   imágenes de cada corrida se generan bajo demanda con el mismo patrón.
+   Candidatas: las corridas de las últimas ~48 h, de la más reciente a la
+   más antigua; gana la primera cuyos mapas respondan, porque una corrida
+   recién inicializada puede tardar en publicar sus imágenes. */
+function sevCandidatas(){
+  const ahora = Date.now(), out = [];
+  for (let d = 0; d < 3; d++){
+    for (const h of [18, 12, 6, 0]){
+      const f = new Date(ahora - d * 86400e3);
+      const runMs = Date.UTC(f.getUTCFullYear(), f.getUTCMonth(), f.getUTCDate(), h);
+      if (runMs <= ahora) out.push(sevRuntimeDe(new Date(runMs), h));
+    }
+  }
+  return out;
 }
 function sevURLImg(rt, pt, fc){
   return "https://rapidrefresh.noaa.gov/hrrr/CARIBBEAN/for_web/hrrr_car_jet/" + rt + "/Florida/" + pt + "_f" + String(fc).padStart(3, "0") + ".png";
@@ -5681,15 +5712,15 @@ async function sevHayMapa(rt, pt, fc){
 }
 function sevValidezTxt(){
   const rt = sevS.corrida;
-  const f = new Date(Date.UTC(+rt.slice(0, 4), +rt.slice(4, 6) - 1, +rt.slice(6, 8), 0) + sevS.fcst * 3600e3);
+  const f = new Date(Date.UTC(+rt.slice(0, 4), +rt.slice(4, 6) - 1, +rt.slice(6, 8), +rt.slice(8, 10)) + sevS.fcst * 3600e3);
   return "· Válido: " + f.toLocaleString("es", { timeZone: "America/Havana", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " (hora de Cuba)";
 }
 function sevEstadoTxt(){
   const e = document.getElementById("sevEstado");
   if (!e || !sevS.corrida) return;
   const rt = sevS.corrida;
-  const runD = new Date(Date.UTC(+rt.slice(0, 4), +rt.slice(4, 6) - 1, +rt.slice(6, 8), 0));
-  e.textContent = "Corrida de las 00:00 UTC del " + runD.toLocaleDateString("es", { timeZone: "UTC", day: "numeric", month: "short" }) +
+  const runD = new Date(Date.UTC(+rt.slice(0, 4), +rt.slice(4, 6) - 1, +rt.slice(6, 8), +rt.slice(8, 10)));
+  e.textContent = "Corrida de las " + rt.slice(8, 10) + ":00 UTC del " + runD.toLocaleDateString("es", { timeZone: "UTC", day: "numeric", month: "short" }) +
     " · pronóstico +" + sevS.fcst + " h " + sevValidezTxt().replace("· ", "· ");
 }
 function sevBuildFigs(){
@@ -5794,10 +5825,10 @@ async function initSevero(){
   sevBuildFigs();
   if (estado) estado.textContent = "Buscando la última corrida del HRRR Caribe…";
   const ahora = new Date();
-  const cands = [0, 1, 2].map(d => sevRuntimeDe(new Date(ahora.getTime() - d * 86400e3)));
+  const cands = sevCandidatas();
   for (let i = 0; i < cands.length; i++){
     const rt = cands[i];
-    const runMs = Date.UTC(+rt.slice(0, 4), +rt.slice(4, 6) - 1, +rt.slice(6, 8), 0);
+    const runMs = Date.UTC(+rt.slice(0, 4), +rt.slice(4, 6) - 1, +rt.slice(6, 8), +rt.slice(8, 10));
     const fc = Math.max(0, Math.min(36, Math.round((ahora.getTime() - runMs) / 3600e3 / 3) * 3));
     if (await sevHayMapa(rt, "mref_Florida_sfc", fc)){ sevS.corrida = rt; sevS.fcst = fc; break; }
   }
@@ -6232,7 +6263,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v17",
+  version: "v18",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
@@ -6295,5 +6326,6 @@ window.MC_V2 = {
   setTimeout(aplicar, 1500);
 })();
 </script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
