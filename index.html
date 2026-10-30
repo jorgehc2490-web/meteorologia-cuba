@@ -294,6 +294,12 @@
      la v3 era para cuando flotaba sobre el mapa y dejaba la fila sorda. */
   .dockChips.fenCab #chips { pointer-events:auto; cursor:grab; }
   .dockChips.fenCab #chips:active { cursor:grabbing; }
+  /* v26: flechas visibles a los extremos de la fila — la rueda y el arrastre
+     no bastaban en el equipo de Jorge; un clic siempre mueve la fila. */
+  .dockChips.fenCab { display:flex; align-items:stretch; gap:6px; }
+  .dockChips.fenCab #chips { flex:1 1 auto; min-width:0; }
+  .dockFlecha { flex:0 0 auto; border:1px solid #0d4066; background:#0d4066; color:#fff; border-radius:999px; padding:0 14px; font-size:19px; font-weight:700; line-height:1; cursor:pointer; font-family:inherit; }
+  .dockFlecha:hover { background:#0a2f47; }
   .dockChips.fenCab #chips button.act { background:#0d4066; color:#fff; border-color:#0d4066; }
   .dockChips.fenCab #chips button.act .dot { box-shadow:0 0 0 1.5px rgba(255,255,255,.55); }
   @media (max-width:640px){ .dockChips.fenCab { margin:0 8px 8px; padding:0; } }
@@ -558,7 +564,7 @@
     <p class="mc-nota">Extremos calculados del modelo (modelo GFS) sobre los 168 municipios; observaciones: reportes METAR reales (red OMM) vía IEM / NWS. El detalle completo está en <a href="#estaciones">Estaciones</a>.</p>
   </section>
 <div class="mc-sec-cab-mapa" id="avisos"><h2>🗺️ Avisos · Mapa interactivo</h2><p>El semáforo de riesgo por municipio y provincia: 10 peligros con los niveles de Jorge, para hoy, mañana y pasado mañana. El peligro de incendios se calcula con el índice de sequía de Keetch–Byram (KBDI) de los últimos 90 días, combinado con la humedad mínima y el viento de cada día. Toque un fenómeno para verlo solo en el mapa; toque un municipio o una provincia para su detalle y recomendaciones.</p><div class="mc-obs-row"><span class="mc-obs-lbl">Observación:</span><span id="obsChips2"></span></div></div>
-<div class="dockChips fenCab"><div id="chips"></div></div>
+<div class="dockChips fenCab"><button class="dockFlecha" id="chipsIzq" type="button" aria-label="Ver los fenómenos anteriores">‹</button><div id="chips"></div><button class="dockFlecha" id="chipsDer" type="button" aria-label="Ver los fenómenos siguientes">›</button></div>
   <div id="modoBar" class="oculto"></div>
   <section class="hero">
     <div id="map"></div>
@@ -6339,7 +6345,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v25",
+  version: "v26",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
@@ -6397,7 +6403,13 @@ window.MC_V2 = {
     ["pointerup","pointercancel","pointerleave"].forEach(function(t){ el.addEventListener(t, function(){ down = false; }); });
     el.addEventListener("click", function(e){ if (moved){ e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
   }
-  function aplicar(){ hscroll(document.querySelector(".mc-nav-in")); hscroll(document.getElementById("chips")); }
+  function aplicar(){
+    hscroll(document.querySelector(".mc-nav-in")); hscroll(document.getElementById("chips"));
+    hscroll(document.querySelector(".dockChips.fenCab"));
+    var izq = document.getElementById("chipsIzq"), der = document.getElementById("chipsDer"), ch = document.getElementById("chips");
+    if (izq && ch && !izq._fl){ izq._fl = true; izq.addEventListener("click", function(){ ch.scrollBy({ left: -320, behavior: "smooth" }); }); }
+    if (der && ch && !der._fl){ der._fl = true; der.addEventListener("click", function(){ ch.scrollBy({ left: 320, behavior: "smooth" }); }); }
+  }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", aplicar); else aplicar();
   setTimeout(aplicar, 1500);
 })();
