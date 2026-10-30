@@ -379,6 +379,22 @@
   .agro-card h3 { margin:0 0 8px; font-size:15.5px; color:#0a2f47; }
   .agro-card .fila { display:flex; justify-content:space-between; font-size:13px; padding:3px 0; border-bottom:1px dashed #e3ecdf; }
   .agro-card ul { margin:9px 0 0; padding-left:17px; font-size:12.5px; line-height:1.5; color:#33503f; }
+  /* ===== v10: agro por provincias y decenas · clima NMME · bloque NHC · franjas de Modelos ===== */
+  .agro-provs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .agro-provs button { font:inherit; font-size:12.5px; font-weight:600; border:1px solid #b9cfdd; background:#f2f7fa; color:#0a2f47; border-radius:999px; padding:5px 12px; cursor:pointer; }
+  .agro-provs button.act { background:#2e7d32; color:#fff; border-color:#2e7d32; }
+  .agro-dec { min-width:520px; }
+  .agro-dec td.num, .agro-dec th.num { text-align:right; }
+  .agro-curso { background:#f6c90e; color:#3d2c00; font-size:11px; font-weight:800; border-radius:999px; padding:2px 8px; white-space:nowrap; }
+  .agro-fut td { background:#eef6ea; }
+  .clima-fig { margin:14px 0; }
+  .clima-fig img { width:100%; height:auto; display:block; border:1px solid #d9e4ea; border-radius:10px; background:#fff; }
+  .clima-fig figcaption { font-size:13.5px; line-height:1.55; color:#24455c; margin-top:7px; }
+  .clima-fig figcaption b { color:#0a2f47; }
+  .sit-nhc { margin-top:14px; border:1px solid #dbe7ee; border-left:5px solid #0d4066; border-radius:12px; padding:12px 14px; background:#f7fbfe; }
+  .sit-nhc h3 { margin:0 0 4px; font-size:16px; color:#0a2f47; }
+  .sit-nhc ul { margin:6px 0 4px; padding-left:18px; font-size:14px; line-height:1.6; color:#24455c; }
+  .sit-nhc .nhc-hora { font-size:12.5px; color:#5b7183; margin:0; }
   .cic-card { border-left:4px solid #d7301f; background:#fdf1ef; border-radius:8px; padding:10px 12px; margin:9px 0; font-size:13.5px; line-height:1.55; }
   .cic-card img { max-width:100%; border-radius:8px; margin-top:8px; background:#fff; }
   .mod-ley { height:12px; border-radius:6px; margin:6px 0 2px; }
@@ -461,6 +477,7 @@
     <div class="sit-grid" id="sitExtremos"></div>
     <h3 class="mc-sub">Fenómenos hoy en el país · nivel máximo nacional</h3>
     <div class="sit-fen" id="sitFenomenos"></div>
+    <div class="sit-nhc" id="sitNHC"><h3>🌀 Perspectiva tropical — NHC</h3><p class="mc-nota">Cargando la síntesis del parte del NHC…</p></div>
     <h3 class="mc-sub">Observaciones recientes de estaciones</h3>
     <div class="sit-est" id="sitEst"><span>Cargando observaciones…</span></div>
     <p class="mc-nota">Extremos calculados del modelo (modelo GFS) sobre los 168 municipios; observaciones: reportes METAR reales (red OMM) vía IEM / NWS. El detalle completo está en <a href="#estaciones">Estaciones</a>.</p>
@@ -670,10 +687,11 @@
 
   <section class="mc-sec" id="modelos" aria-label="Modelos de pronóstico">
     <div class="mc-sec-cab"><h2>🧭 Modelos de pronóstico</h2><span class="mc-sec-fecha" id="modValidez"></span></div>
-    <p>Los tres grandes modelos numéricos <b>dibujados</b> sobre Cuba, como en los visores profesionales: el campo se pinta <b>continuo sobre el satélite</b>, con <b>líneas de flujo animadas</b> (temperatura y presión) o <b>barbas de viento</b> (viento y rachas). Elija el modelo y la variable, y mueva el deslizador o pulse <b>▶ Animar</b> para avanzar en el tiempo (hasta +120 horas). Los valores sobre las capitales se leen de la propia rejilla del modelo. Al <b>ampliar el mapa</b> aparecen los <b>municipios con el valor</b> de la variable en cada uno, y la variable <b>Acumulado</b> suma la lluvia desde ahora hasta la hora elegida.</p>
+    <p>Los tres grandes modelos numéricos <b>dibujados</b> sobre Cuba, como en los visores profesionales: el campo se pinta <b>continuo sobre el satélite</b>, con <b>líneas de flujo animadas</b> (temperatura y presión) o <b>barbas de viento</b> (viento y rachas). Elija el modelo y la variable, y mueva el deslizador o pulse <b>▶ Animar</b> para avanzar en el tiempo (hasta +120 horas). Los valores sobre las capitales se leen de la propia rejilla del modelo. Al <b>ampliar el mapa</b> aparecen los <b>municipios con el valor</b> de la variable en cada uno, y la variable <b>Acumulado</b> suma la lluvia desde ahora hasta la hora elegida. Con los botones de <b>parte del día</b> el campo pasa a la franja de hoy que elija (madrugada, mañana, tarde o noche): en lluvia muestra la <b>suma de la franja</b> y en las demás variables, el valor de su <b>hora central</b>.</p>
     <div class="mc-ctl"><span>Modelo:</span><span id="modModelos"><button data-mm="gfs_seamless" class="act" type="button">GFS</button><button data-mm="ecmwf_ifs025" type="button">ECMWF</button><button data-mm="icon_seamless" type="button">ICON</button></span></div>
     <div class="mc-ctl"><span>Variable:</span><span id="modVars"><button data-mv="temperature_2m" class="act" type="button">Temperatura</button><button data-mv="precipitation" type="button">Lluvia</button><button data-mv="wind_speed_10m" type="button">Viento</button><button data-mv="wind_gusts_10m" type="button">Rachas</button><button data-mv="pressure_msl" type="button">Presión</button><button data-mv="acumulado" type="button">Acumulado</button></span></div>
     <div class="mc-ctl"><button id="modPlay" type="button">▶ Animar</button><input type="range" class="mc-range" id="modHora" min="0" max="120" step="3" value="0"><span class="mc-hora" id="modEstado">Sin cargar: se activa al abrir esta sección.</span></div>
+    <div class="mc-ctl"><span>Parte del día (hoy):</span><span id="modFranjas"><button data-mf="0" type="button">🌅 Madrugada 0–6</button><button data-mf="1" type="button">☀️ Mañana 6–12</button><button data-mf="2" type="button">🌇 Tarde 12–18</button><button data-mf="3" type="button">🌙 Noche 18–24</button></span><span class="mc-hora">En hora de Cuba; el deslizador manda si se mueve, y tocar la parte activa la apaga.</span></div>
     <div class="mod-wrap"><div class="mc-map2" id="mapMod"></div><div class="mod-pill" id="modPill">—</div><div class="mod-panel" id="modPanel">—</div></div>
     <div id="modLeyenda"></div>
     <p class="mc-nota">Datos: salidas de los modelos GFS (NOAA), ECMWF e ICON (DWD). Son salidas de modelo sin corregir: compárelas entre sí y con los <a href="#avisos">avisos</a>, que ya llevan el criterio del meteorólogo. Lluvia = mm de la hora; viento en km/h; presión en hPa al nivel del mar.</p>
@@ -691,6 +709,15 @@
     <p id="climaEstacion"></p>
     <div class="mc-tabla-wrap"><table class="mc-tabla" id="climaTabla"><thead><tr><th>Capital</th><th>Normal máx. del mes</th><th>Normal mín. del mes</th><th>Lluvia normal del mes</th><th>Hoy: máx. pronosticada</th><th>Diferencia</th></tr></thead><tbody><tr><td colspan="6">Cargando…</td></tr></tbody></table></div>
     <p id="climaRecords"></p>
+    <h3 class="mc-sub">Perspectivas mensuales de los modelos numéricos (conjunto NMME)</h3>
+    <p>Lo que los grandes modelos de clima, combinados en el conjunto norteamericano <b>NMME</b>, esperan para el mes próximo: son mapas mundiales de tendencia — no pronósticos locales —, útiles para saber si el mes tiende a más lluvioso o más seco y cómo viene el mar que rodea a Cuba. Se actualizan una vez al mes; el título de cada mapa indica su período (IC = mes en que se calculó; «Lead 1» = el mes siguiente). Cuba se busca en el Caribe, entre el golfo de México y el Atlántico.</p>
+    <figure class="clima-fig"><img src="https://www.cpc.ncep.noaa.gov/products/NMME/current/images/NMME_ensemble_prate_lead1.png" alt="Mapa NMME de anomalía de la lluvia mensual" loading="lazy" onerror="this.closest('figure').style.display='none'">
+    <figcaption><b>Lluvia del mes — anomalía (NMME).</b> Cuánto se espera que llueva de más o de menos frente a lo normal, en mm/día: verdes y azules, más lluvia de lo normal; amarillos, naranjas y rojos, menos. Para Cuba importa el color sobre la isla y su entorno caribeño: es una guía regional de tendencia, no la lluvia de un municipio concreto.</figcaption></figure>
+    <figure class="clima-fig"><img src="https://www.cpc.ncep.noaa.gov/products/NMME/prob/images/prob_ensemble_prate_lead1.png" alt="Mapa NMME de probabilidad de la lluvia mensual" loading="lazy" onerror="this.closest('figure').style.display='none'">
+    <figcaption><b>Lluvia del mes — probabilidad (NMME).</b> La probabilidad de que el mes termine entre los más lluviosos (verde), los más secos (marrón) o en lo normal (gris) comparando con el histórico: cuanto más intenso el color, más coinciden los modelos (del 40 % al 70 % o más). Sobre Cuba, el verde inclina el mes a húmedo y el marrón, a seco.</figcaption></figure>
+    <figure class="clima-fig"><img src="https://www.cpc.ncep.noaa.gov/products/NMME/current/images/NMME_ensemble_tmpsfc_lead1.png" alt="Mapa NMME de anomalía de la temperatura del mar" loading="lazy" onerror="this.closest('figure').style.display='none'">
+    <figcaption><b>Temperatura del mar — anomalía (NMME).</b> Ojo: este mapa es de la temperatura de la <b>superficie del mar</b>, no del aire: rojos y naranjas, mar más caliente de lo normal; azules, más frío. Para Cuba es el mar que la rodea — Caribe, golfo y Atlántico —: un mar más caliente aporta más humedad y energía a los sistemas tropicales y suaviza las entradas de aire frío. La temperatura del aire de referencia sigue siendo la tabla de normales de arriba: este mes el CPC no publica en imagen el mapa multimodelo de temperatura del aire con cobertura de Cuba (sus mapas oficiales de perspectiva cubren solo Estados Unidos).</figcaption></figure>
+    <p class="mc-nota">Fuente: conjunto multimodelo norteamericano NMME (modelos de NOAA, Canadá y la NASA), vía Climate Prediction Center (NOAA).</p>
     <p class="mc-nota">Normales calculadas con el reanálisis ERA5 (Copernicus) para el período 1991–2020, en el punto de cada capital provincial: son la referencia del clima del lugar, no la medición de una estación concreta. «Hoy» es el pronóstico del modelo para la capital (municipio cabecera).</p>
   </section>
 
@@ -705,10 +732,11 @@
   </section>
 
   <section class="mc-sec" id="agro" aria-label="Agrometeorología">
-    <div class="mc-sec-cab"><h2>🌾 Agrometeorología</h2><span class="mc-sec-fecha">Boletín en lenguaje llano</span></div>
-    <p>La lluvia que cayó, la que viene, la humedad del suelo y la demanda de agua de los cultivos, por zonas del país, con recomendaciones prácticas para el campo.</p>
-    <div class="agro-grid" id="agroZonas"><p class="mc-nota">Cargando el boletín agrometeorológico…</p></div>
-    <p class="mc-nota">Datos: modelos numéricos (lluvia y evapotranspiración del modelo; humedad del suelo estimada por modelo y satélite). Cuba no publica en abierto las mediciones de su red agrometeorológica, así que estos valores son estimaciones del modelo para la zona, útiles como orientación general.</p>
+    <div class="mc-sec-cab"><h2>🌾 Agrometeorología</h2><span class="mc-sec-fecha">Por provincias · Por decenas</span></div>
+    <p>La lluvia y la temperatura de cada provincia, organizadas por <b>decenas</b> — los períodos de diez días de los boletines agrometeorológicos: días 1–10, 11–20 y 21–fin de mes —, con la humedad del suelo, la demanda de agua de los cultivos y recomendaciones prácticas para el campo. Elija su provincia.</p>
+    <div class="agro-provs" id="agroProvs"></div>
+    <div id="agroPanel"><p class="mc-nota">El boletín de cada provincia se carga al tocarla…</p></div>
+    <p class="mc-nota">Datos: modelo numérico en el punto de referencia de cada provincia (su capital): lluvia y temperatura diarias ya ocurridas y pronosticadas, y humedad del suelo y evapotranspiración estimadas por el propio modelo. Cuba no publica en abierto las mediciones de su red agrometeorológica, así que estos valores son estimaciones, útiles como orientación general. La fila de pronóstico suma los próximos diez días.</p>
   </section>
 
   <section class="mc-sec" id="estaciones" aria-label="Estaciones">
@@ -3517,6 +3545,7 @@ function initSeccion(n){
     else if (n === "modelos") initModelos();
     else if (n === "ciclones") initCiclones();
     else if (n === "salud") initSalud();
+    else if (n === "situacion") initNHC();
     else if (n === "agro") initAgro();
     else if (n === "estaciones") mc2CargarEst().then(pintarEstaciones);
   } catch(e){}
@@ -3557,6 +3586,7 @@ function mostrarVista(n, sinScroll){
   });
   marcarNav(n === "inicio" ? "situacion" : n);
   initSeccion(n);
+  if (n === "situacion"){ try { initNHC(); } catch(e){} }
   ubicarFicha();
   if (n === "avisos") setTimeout(reajustarMapaAvisos, 80);
   if (!sinScroll){
@@ -3767,6 +3797,158 @@ function pintarSituacion(){
   if (!dom && nm < 1) frases.push("Sin fenómenos en nivel de atención hoy en el país: un día tranquilo en el semáforo.");
   $("sitResumen").innerHTML = frases.join(" ");
   mc2CargarEst().then(function(){ pintarSitEst(); pintarEstaciones(); });
+}
+
+/* ---------- SITUACIÓN ACTUAL · PERSPECTIVA TROPICAL DEL NHC (v10) ----------
+   Jorge pidió (29-oct) añadir a Situación actual la perspectiva del
+   análisis del NHC: lo importante para Cuba y lo que ocurre en el Caribe,
+   el golfo de México y el Atlántico occidental, a partir de la discusión
+   del tiempo tropical del Atlántico (MIATWDAT) y la perspectiva a 7 días
+   (TWOAT). Ruta viva verificada esta noche: la API de weather.gov (NWS)
+   sirve ambos productos con CORS abierto (Access-Control-Allow-Origin: *).
+   La síntesis es EXTRACTIVA y en palabras propias, nunca el texto íntegro:
+   frases plantilla que solo se escriben si el patrón está en el producto
+   (zonas vigiladas con su probabilidad, sistemas nombrados con su
+   posición, aviso de galerna, lluvia fuerte sobre Cuba, ondas con su
+   longitud, y por área — Caribe, Golfo, Atlántico — frente, vaguada,
+   chubascos acotados por coordenadas, polvo, viento y mar). Si no se
+   extrae nada, el bloque lo dice tal cual. Se carga al abrir la sección
+   y se refresca si pasaron más de 20 minutos; no toca el servicio de
+   datos de pronóstico. */
+var nhcInfo = { ok: false, lineas: 0, twd: null, two: null, sintesis: [] }, nhcCargando = false, nhcUltimo = 0;
+function nhcEsc(s){ return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function nhcHoraCuba(iso){
+  try { return new Date(iso).toLocaleString("es", { timeZone: "America/Havana", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
+  catch(e){ return ""; }
+}
+function nhcDirES(d){ return ({ NE: "del nordeste", ENE: "del estenordeste", E: "del este", SE: "del sudeste" })[d] || d; }
+var NHC_AREAS_ES = [
+  ["northwestern caribbean", "noroeste del mar Caribe"], ["southwestern caribbean", "suroeste del mar Caribe"],
+  ["western caribbean", "oeste del mar Caribe"], ["eastern caribbean", "este del mar Caribe"],
+  ["central caribbean", "centro del mar Caribe"], ["caribbean", "mar Caribe"],
+  ["gulf of america", "golfo de México"], ["gulf of mexico", "golfo de México"],
+  ["southwestern atlantic", "suroeste del Atlántico"], ["southwest atlantic", "suroeste del Atlántico"],
+  ["central atlantic", "Atlántico central"], ["eastern atlantic", "Atlántico oriental"],
+  ["tropical atlantic", "Atlántico tropical"], ["leeward islands", "islas de Sotavento"],
+  ["windward islands", "islas de Barlovento"], ["bahamas", "las Bahamas"], ["florida", "la Florida"],
+  ["yucatan", "la península de Yucatán"], ["hispaniola", "La Española"]
+];
+function nhcAreaES(tit){
+  var t = (tit || "").toLowerCase();
+  for (var i = 0; i < NHC_AREAS_ES.length; i++) if (t.indexOf(NHC_AREAS_ES[i][0]) >= 0) return NHC_AREAS_ES[i][1];
+  return nhcEsc(tit);
+}
+function nhcNivelES(w){ return ({ low: "baja", medium: "media", high: "alta" })[(w || "").toLowerCase()] || w; }
+function nhcSecciones(twdPlano){
+  var partes = String(twdPlano || "").split(/\.\.\.([A-Z][A-Z /]+)\.\.\./), out = {};
+  for (var i = 1; i < partes.length - 1; i += 2) out[partes[i].trim()] = partes[i + 1] || "";
+  return out;
+}
+function nhcAreaFrases(cuerpo){
+  var an = String(cuerpo || "").split(/For the forecast/i)[0], cl = [];
+  if (/stationary front/i.test(an)){
+    var c = "frente estacionario";
+    if (/north of the Bahamas/i.test(an)) c += " al norte de las Bahamas";
+    else if (/SW (?:N )?Atlantic|southwestern Atlantic/i.test(an)) c += " sobre el Atlántico suroeste";
+    else { var mf = /along roughly (\d+)N\/(\d+)N/.exec(an); if (mf) c += " sobre los " + mf[1] + "–" + mf[2] + "°N"; }
+    cl.push(c);
+  }
+  if (/cold front/i.test(an)) cl.push("frente frío" + (/moving (?:through|into|toward)/i.test(an) ? " en avance" : ""));
+  if (/trough/i.test(an)){
+    var v = "vaguada";
+    if (/surface trough/i.test(an)) v = "vaguada en superficie";
+    if (/Windward Passage/i.test(an)) v += " desde el Paso de los Vientos hacia el centro del Caribe";
+    else if (/Yucatan/i.test(an)) v += " cerca de la península de Yucatán";
+    else if (/Florida Straits/i.test(an)) v += " hasta el estrecho de la Florida";
+    cl.push(v);
+  }
+  var mch = /north of (\d+)N between (\d+)W-(\d+)W/i.exec(an);
+  if (mch && /showers|thunderstorm/i.test(an)) cl.push("chubascos y tormentas aisladas al norte de los " + mch[1] + "°N entre los " + mch[2] + "°O y los " + mch[3] + "°O");
+  else if (/scattered showers and (?:isolated )?thunderstorms/i.test(an)) cl.push("chubascos dispersos y tormentas aisladas");
+  if (/Saharan|dust/i.test(an)) cl.push("polvo del Sahara presente");
+  var mv1 = /fresh to strong (NE|ENE|E|SE)(?: to (?:NE|ENE|E|SE))? winds/i.exec(an);
+  var mv2 = /moderate to fresh (NE|ENE|E|SE) winds/i.exec(an);
+  if (/gale[- ]force/i.test(an)) cl.push("vientos con fuerza de galerna y mar muy gruesa en sectores");
+  else if (mv1) cl.push("vientos " + nhcDirES(mv1[1]) + " frescos a fuertes" + (/rough seas/i.test(an) ? " y mar gruesa" : ""));
+  else if (mv2) cl.push("vientos " + nhcDirES(mv2[1]) + " moderados a frescos");
+  else if (/rough seas/i.test(an)) cl.push("mar gruesa en sectores");
+  return cl;
+}
+function nhcSintesis(twdT, twoT){
+  var twd = String(twdT || "").replace(/\s+/g, " "), two = String(twoT || "").replace(/\s+/g, " ");
+  var L = [];
+  if (two){
+    if (/formation is not expected during the next 7 days/i.test(two)){
+      L.push("El NHC <b>no espera formación de ciclones tropicales</b> en los próximos 7 días.");
+    } else {
+      two.split(/\s(?=\d+\.\s)/).forEach(function(ch){
+        var mt = /^\s*(\d+)\.\s+([^:]+):/.exec(ch); if (!mt) return;
+        var c7 = /Formation chance through 7 days\.\.\.(\w+)\.\.\.(?:near )?(\d+) percent/i.exec(ch);
+        var c2 = /Formation chance through 48 hours\.\.\.(\w+)\.\.\.(?:near )?(\d+) percent/i.exec(ch);
+        if (!c7 && !c2) return;
+        var u = c7 || c2;
+        L.push("🌀 <b>Zona vigilada — " + nhcAreaES(mt[2]) + ":</b> probabilidad de formación " + (c7 ? "en 7 días" : "en 48 horas") + " " + nhcNivelES(u[1]) + " (" + u[2] + " %).");
+      });
+    }
+  }
+  var S = nhcSecciones(twd), sf = S["SPECIAL FEATURES"];
+  if (sf){
+    var vistos = {}, noNom = { Warning: 1, Watch: 1, Center: 1, Advisory: 1, Statement: 1, Season: 1 };
+    var reS = /(Hurricane|Tropical Storm|Tropical Depression|Subtropical Storm|Subtropical Depression|Post-Tropical Cyclone|Remnants of)\s+([A-Z][A-Za-z\-]+)/g, ms;
+    while ((ms = reS.exec(sf))){
+      if (noNom[ms[2]] || vistos[ms[1] + ms[2]]) continue; vistos[ms[1] + ms[2]] = 1;
+      var tipoES = ({ "Hurricane": "El huracán", "Tropical Storm": "La tormenta tropical", "Tropical Depression": "La depresión tropical", "Subtropical Storm": "La tormenta subtropical", "Subtropical Depression": "La depresión subtropical", "Post-Tropical Cyclone": "El ciclón postropical", "Remnants of": "Los remanentes de" })[ms[1]];
+      var mp = /(?:centered|located) near (\d+(?:\.\d+)?)N\s+(\d+(?:\.\d+)?)W/i.exec(sf.slice(ms.index, ms.index + 400));
+      L.push("🌀 " + tipoES + " <b>" + nhcEsc(ms[2]) + "</b>" + (mp ? " está centrado cerca de los " + mp[1].replace(".", ",") + "°N, " + mp[2].replace(".", ",") + "°O." : " está activo en la cuenca."));
+    }
+    if (/gale warning/i.test(sf.slice(0, 80)))
+      L.push("⚠️ <b>Aviso de galerna del NHC:</b> vientos fuertes y mar muy gruesa en aguas del Atlántico occidental" + (/Bahamas/i.test(sf) ? ", en el sector de las Bahamas y al norte del frente estacionario" : "") + ".");
+    if (/Cuba/.test(sf) && /heavy rain/i.test(sf))
+      L.push("🌧️ El NHC señala <b>lluvias localmente fuertes</b> sobre " + (/eastern Cuba/i.test(sf) ? "el este de Cuba" : "Cuba") + (/flood/i.test(sf) ? ", con riesgo de inundaciones localizadas," : "") + " en los próximos días.");
+  }
+  var tw = S["TROPICAL WAVES"];
+  if (tw){
+    var lons = {}, mw, reW = /along\s+(\d{2,3})W/gi;
+    while ((mw = reW.exec(tw))) lons[mw[1]] = 1;
+    var ls = Object.keys(lons).map(Number).filter(function(x){ return x >= 40 && x <= 95; }).sort(function(a, b){ return a - b; });
+    if (ls.length) L.push("🌊 Ondas tropicales en el área: ejes cerca de los " + ls.map(function(x){ return x + "°O"; }).join(", ") + "." + (ls.some(function(x){ return x >= 74 && x <= 85; }) ? " La más occidental avanza ya por longitudes de Cuba." : ""));
+  }
+  [["CARIBBEAN SEA", "Caribe"], ["GULF OF AMERICA", "Golfo"], ["GULF OF MEXICO", "Golfo"], ["ATLANTIC OCEAN", "Atlántico occidental"]].forEach(function(par){
+    if (!S[par[0]]) return;
+    var cl = nhcAreaFrases(S[par[0]]);
+    if (cl.length) L.push("🌎 <b>" + par[1] + ":</b> " + cl.join("; ") + ".");
+  });
+  if (!L.length) L.push("Sin sistemas de interés para Cuba en esta emisión: el análisis del NHC no destaca frentes, vaguadas ni zonas vigiladas que afecten a la isla ni a sus mares cercanos.");
+  return L;
+}
+async function nhcProducto(tipo){
+  var r = await fetch("https://api.weather.gov/products/types/" + tipo + "/locations/AT");
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  var j = await r.json(), g = (j && j["@graph"]) || [];
+  if (!g.length) throw new Error("sin productos");
+  var r2 = await fetch("https://api.weather.gov/products/" + g[0].id);
+  if (!r2.ok) throw new Error("HTTP " + r2.status);
+  var p = await r2.json();
+  return { t: p.issuanceTime || g[0].issuanceTime, texto: p.productText || "" };
+}
+async function initNHC(){
+  var el = $("sitNHC"); if (!el) return;
+  if (nhcCargando) return;
+  if (nhcInfo.ok && Date.now() - nhcUltimo < 20 * 60 * 1000) return;
+  nhcCargando = true;
+  try {
+    var res = await Promise.all([nhcProducto("TWD"), nhcProducto("TWO")]);
+    var lineas = nhcSintesis(res[0].texto, res[1].texto);
+    nhcInfo = { ok: true, lineas: lineas.length, twd: res[0].t, two: res[1].t, sintesis: lineas };
+    nhcUltimo = Date.now();
+    el.innerHTML = "<h3>🌀 Perspectiva tropical — NHC</h3>" +
+      '<p class="nhc-hora">Síntesis del análisis del NHC para Cuba, el Caribe, el golfo y el Atlántico occidental · Discusión: ' + nhcHoraCuba(res[0].t) + " · Perspectiva a 7 días: " + nhcHoraCuba(res[1].t) + " (hora de Cuba)</p>" +
+      "<ul>" + lineas.map(function(x){ return "<li>" + x + "</li>"; }).join("") + "</ul>" +
+      '<p class="mc-nota">Síntesis automática en lenguaje propio a partir de la discusión del tiempo tropical (MIATWDAT) y la perspectiva a 7 días (TWOAT) del Centro Nacional de Huracanes (NHC / NOAA). Textos completos: <a href="https://www.nhc.noaa.gov/gtwo.php?basin=atlc" target="_blank" rel="noopener">perspectiva del Atlántico ↗</a>.</p>';
+  } catch(e){
+    el.innerHTML = "<h3>🌀 Perspectiva tropical — NHC</h3>" + '<p class="mc-nota">No se pudo cargar la síntesis del NHC en este momento. Los productos completos están en <a href="https://www.nhc.noaa.gov/gtwo.php?basin=atlc" target="_blank" rel="noopener">nhc.noaa.gov ↗</a>.</p>';
+  }
+  nhcCargando = false;
 }
 
 /* ---------- SATÉLITE (sección propia) ---------- */
@@ -4232,8 +4414,11 @@ function modLeyenda(){
   var kind = MODVARS[modS.variable][1], ramp = MODRAMP[kind];
   var lo = ramp[0][0], hi = ramp[ramp.length - 1][0];
   var grad = "linear-gradient(90deg," + ramp.map(function(st){ return st[1] + " " + Math.round((st[0] - lo) / (hi - lo) * 100) + "%"; }).join(",") + ")";
+  var frL = (modS.franja === null || modS.franja === undefined || typeof MODFRANJAS === "undefined") ? null : MODFRANJAS[modS.franja];
   $("modLeyenda").innerHTML = '<div class="mod-ley" style="background:' + grad + '"></div><div class="mc-nota">' +
-    modNombreModelo() + " · " + (modS.variable === "acumulado" ? "Lluvia acumulada hasta +" + modS.hour + " h" : MODVARS[modS.variable][0]) + ": " +
+    modNombreModelo() + " · " + (frL && (modS.variable === "precipitation" || modS.variable === "acumulado")
+      ? "Lluvia acumulada en la " + frL.n.toLowerCase() + " (" + frL.h0 + "–" + frL.h1 + " h)"
+      : (modS.variable === "acumulado" ? "Lluvia acumulada hasta +" + modS.hour + " h" : MODVARS[modS.variable][0])) + ": " +
     modFmt(kind, lo) + " → " + modFmt(kind, hi) + "</div>";
 }
 /* ---------- lienzos sobre el mapa: partículas de flujo y barbas ---------- */
@@ -4373,11 +4558,28 @@ async function modRender(){
   var now = new Date(); now.setMinutes(0, 0, 0);
   var target = new Date(now.getTime() + modS.hour * 3600e3);
   var dayISO = target.toISOString().slice(0, 10), hIdx = target.getUTCHours();
+  /* v10: parte del día — con franja activa, el objetivo deja de ser
+     «ahora + deslizador» y pasa a ser la franja de HOY en hora de Cuba:
+     su hora central para las variables instantáneas y su intervalo
+     completo para sumar la lluvia. El deslizador sigue mandando en
+     cuanto se mueve (su listener apaga la franja). */
+  var fr = (modS.franja === null || modS.franja === undefined) ? null : MODFRANJAS[modS.franja];
+  var frIni = null, frFin = null;
+  if (fr){
+    var hoyC = mc5DiaHab();
+    target = modCubaAUTC(hoyC, (fr.h0 + fr.h1) / 2);
+    frIni = modCubaAUTC(hoyC, fr.h0); frFin = modCubaAUTC(hoyC, fr.h1);
+    dayISO = target.toISOString().slice(0, 10); hIdx = target.getUTCHours();
+  }
+  modS.diag.franja = fr ? { nombre: fr.n, h0: fr.h0, h1: fr.h1, centroUTC: target.toISOString(), diaISO: dayISO, hIdx: hIdx } : null;
   var fechaVal = target.toLocaleString("es", { timeZone: "America/Havana", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-  $("modValidez").textContent = "Válido: " + fechaVal + " (hora de Cuba) · +" + modS.hour + " h";
-  $("modPill").textContent = fechaVal + " (+" + modS.hour + " h)";
+  $("modValidez").textContent = fr ? "Válido: hoy · " + fr.n + " (" + fr.h0 + "–" + fr.h1 + " h, hora de Cuba)" : "Válido: " + fechaVal + " (hora de Cuba) · +" + modS.hour + " h";
+  $("modPill").textContent = fr ? "Hoy · " + fr.n + " " + fr.h0 + "–" + fr.h1 + " h" : fechaVal + " (+" + modS.hour + " h)";
   $("modPanel").textContent = modNombreModelo() + " · " + modRunLabel(modS.model) + " · " +
-    (modS.variable === "acumulado" ? "Lluvia acumulada hasta +" + modS.hour + " h" : MODVARS[modS.variable][3]);
+    (fr ? ((modS.variable === "precipitation" || modS.variable === "acumulado")
+        ? "Lluvia de la " + fr.n.toLowerCase() + " (suma " + fr.h0 + "–" + fr.h1 + " h)"
+        : MODVARS[modS.variable][3] + " · " + ((fr.h0 + fr.h1) / 2) + ":00, hora central de la " + fr.n.toLowerCase())
+      : (modS.variable === "acumulado" ? "Lluvia acumulada hasta +" + modS.hour + " h" : MODVARS[modS.variable][3]));
   /* v7: la leyenda se refresca AQUÍ, en la parte síncrona, igual que la
      píldora y el panel. En la v6 solo se actualizaba al final del render
      y, como el Acumulado tarda (suma hora a hora), quedaba enseñando la
@@ -4388,7 +4590,9 @@ async function modRender(){
   $("modEstado").textContent = "Cargando la rejilla del modelo…";
   try {
     var data;
-    if (modS.variable === "acumulado"){
+    if (fr && (modS.variable === "precipitation" || modS.variable === "acumulado")){
+      data = await modSumaLluvia(modS.model, frIni, frFin, hIdx);
+    } else if (modS.variable === "acumulado"){
       data = await modAcumulado(modS.model, now, target, hIdx);
     } else {
       var A = await modFetchGroup(modS.model, "A", dayISO);
@@ -4403,7 +4607,7 @@ async function modRender(){
     modCitiesDraw(data, hIdx); modLeyenda();
     modS.lastData = data; modS.lastHIdx = hIdx;
     modMunDraw();
-    $("modEstado").textContent = "Rejilla de " + (MODNX * MODNY) + " puntos (" + MODNX + " × " + MODNY + ") · " + modNombreModelo() + " · " + MODVARS[modS.variable][0];
+    $("modEstado").textContent = "Rejilla de " + (MODNX * MODNY) + " puntos (" + MODNX + " × " + MODNY + ") · " + modNombreModelo() + " · " + MODVARS[modS.variable][0] + (fr ? " · " + fr.n + " de hoy" : "");
     var tipo = MODVARS[modS.variable][2];
     if (tipo === "nada"){ modParticulasStop(); modBarbasClear(); modS.diag.overlay = "nada"; }
     else {
@@ -4444,14 +4648,73 @@ document.querySelectorAll("#modVars button").forEach(function(b){
     modS.variable = b.dataset.mv; modRender();
   });
 });
-$("modHora").addEventListener("input", function(e){ modS.hour = +e.target.value; modRender(); });
+$("modHora").addEventListener("input", function(e){ modS.hour = +e.target.value; if (modS.franja !== null && modS.franja !== undefined){ modS.franja = null; modFranjaBotones(); } modRender(); });
 $("modPlay").addEventListener("click", function(e){
   if (modS.play){ clearInterval(modS.play); modS.play = null; e.target.textContent = "▶ Animar"; return; }
   e.target.textContent = "⏸ Detener";
   modS.play = setInterval(function(){
     modS.hour = modS.hour >= 120 ? 0 : modS.hour + 3;
+    if (modS.franja !== null && modS.franja !== undefined){ modS.franja = null; modFranjaBotones(); }
     $("modHora").value = modS.hour; modRender();
   }, 1300);
+});
+
+/* ---------- MODELOS · PARTES DEL DÍA (v10) ----------
+   El mapa del pronóstico por partes del día, como el que aparecía en
+   LABMET: MADRUGADA 0–6 · MAÑANA 6–12 · TARDE 12–18 · NOCHE 18–24, en
+   hora de Cuba y para HOY. Tocar una parte coloca el campo en esa
+   franja: lluvia y acumulado muestran la SUMA de la franja; temperatura,
+   viento, rachas y presión, el valor de su hora central (3, 9, 15, 21).
+   Sin llamadas nuevas: todo sale de la misma caché por modelo+día del
+   grupo A que ya usa la sección (la suma itera las horas de los días ya
+   cargados o cargables por esa vía). Convive con el deslizador: moverlo
+   — o la animación — apaga la franja, y tocar la parte activa también. */
+var MODFRANJAS = [
+  { n: "Madrugada", h0: 0, h1: 6 }, { n: "Mañana", h0: 6, h1: 12 },
+  { n: "Tarde", h0: 12, h1: 18 }, { n: "Noche", h0: 18, h1: 24 }
+];
+modS.franja = null;
+function modOffsetHab(utcMs){
+  try {
+    var p = {};
+    new Intl.DateTimeFormat("en-US", { timeZone: "America/Havana", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(new Date(utcMs)).forEach(function(x){ p[x.type] = x.value; });
+    var local = Date.UTC(+p.year, +p.month - 1, +p.day, (+p.hour) % 24, +p.minute, +p.second);
+    return Math.round((local - utcMs) / 60000);
+  } catch(e){ return -240; }
+}
+function modCubaAUTC(isoCuba, hora){
+  var g = Date.parse(isoCuba + "T" + String(hora).padStart(2, "0") + ":00:00Z");
+  var off = modOffsetHab(g), u = g - off * 60000, off2 = modOffsetHab(u);
+  if (off2 !== off) u = g - off2 * 60000;
+  return new Date(u);
+}
+async function modSumaLluvia(model, ini, fin, hIdx){
+  var sums = new Array(MODNX * MODNY).fill(0);
+  var t = new Date(ini.getTime());
+  while (t.getTime() < fin.getTime()){
+    var A = await modFetchGroup(model, "A", t.toISOString().slice(0, 10));
+    var P = A.precipitation, hh = t.getUTCHours();
+    for (var j = 0; j < sums.length; j++){
+      var v = P[j] ? P[j][hh] : null;
+      if (v !== null && v !== undefined && !isNaN(v)) sums[j] += v;
+    }
+    t = new Date(t.getTime() + 3600e3);
+  }
+  var out = [];
+  for (var j2 = 0; j2 < sums.length; j2++){ var arr = new Array(24).fill(null); arr[hIdx] = sums[j2]; out.push(arr); }
+  return out;
+}
+function modFranjaBotones(){
+  document.querySelectorAll("#modFranjas button").forEach(function(b){
+    b.classList.toggle("act", modS.franja !== null && modS.franja !== undefined && +b.dataset.mf === modS.franja);
+  });
+}
+document.querySelectorAll("#modFranjas button").forEach(function(b){
+  b.addEventListener("click", function(){
+    var f = +b.dataset.mf;
+    modS.franja = (modS.franja === f) ? null : f;
+    modFranjaBotones(); modRender();
+  });
 });
 
 
@@ -4686,52 +4949,131 @@ async function initSalud(){
   pintarSalud();
 }
 
-/* ---------- AGROMETEOROLOGÍA ---------- */
-var AGRO_ZONAS = [["Occidente", 22.42, -83.69, "Pinar del Río"], ["Centro", 22.41, -79.96, "Santa Clara"], ["Oriente", 20.37, -76.64, "Bayamo"]];
-var agroInit = false, agroListo = false;
-async function initAgro(){
-  if (agroInit) return; agroInit = true;
-  var la = AGRO_ZONAS.map(function(z){ return z[1]; }).join(","), lo = AGRO_ZONAS.map(function(z){ return z[2]; }).join(",");
-  var u = "https://api.open-meteo.com/v1/forecast?latitude=" + la + "&longitude=" + lo +
-    "&daily=precipitation_sum,et0_fao_evapotranspiration&hourly=soil_moisture_0_to_7cm,soil_moisture_7_to_28cm&timezone=America%2FHavana&past_days=30&forecast_days=7";
-  var j = null;
-  try { j = await (await fetch(u)).json(); } catch(e){}
-  if (!j){ $("agroZonas").innerHTML = '<p class="mc-nota">No se pudo cargar el boletín agrometeorológico en este momento.</p>'; return; }
-  if (!Array.isArray(j)) j = [j];
-  var hoy = hoyISO();
-  $("agroZonas").innerHTML = j.map(function(loc, zi){
-    var z = AGRO_ZONAS[zi], D = loc.daily, H = loc.hourly;
-    var h = D.time.indexOf(hoy); if (h < 0) h = 30;
-    function sumD(arr, a, b){ var s = 0; for (var i = Math.max(0, a); i < Math.min(arr.length, b); i++) s += arr[i] || 0; return s; }
-    var l7 = sumD(D.precipitation_sum, h - 7, h), l30 = sumD(D.precipitation_sum, h - 30, h),
-        lp = sumD(D.precipitation_sum, h, h + 7), et0 = sumD(D.et0_fao_evapotranspiration, h, h + 7);
-    var s1 = [], s2 = [];
-    H.time.forEach(function(t, i){ if (t.slice(0, 10) === hoy){ if (H.soil_moisture_0_to_7cm[i] != null) s1.push(H.soil_moisture_0_to_7cm[i]); if (H.soil_moisture_7_to_28cm[i] != null) s2.push(H.soil_moisture_7_to_28cm[i]); } });
-    var prom = function(a){ return a.length ? a.reduce(function(x, y){ return x + y; }, 0) / a.length : null; };
-    var suelo = (prom(s1) !== null && prom(s2) !== null) ? (prom(s1) + prom(s2)) / 2 * 100 : null;
-    var estSuelo = suelo === null ? "sin dato" : suelo < 16 ? "Seco" : suelo <= 26 ? "Aceptable" : "Húmedo";
-    var mes = new Date().getMonth(), diasMes = [31,28,31,30,31,30,31,31,30,31,30,31][mes];
-    var N = (typeof NORMALES !== "undefined" && NORMALES[z[3]]) ? NORMALES[z[3]] : null;
-    var esp30 = N ? N.mensual[mes][2] * 30 / diasMes : null;
-    var defTxt = "—";
-    if (esp30 && esp30 >= 15){ var df = (l30 / esp30 - 1) * 100; defTxt = (df > 0 ? "+" : "") + Math.round(df) + " % frente a lo normal"; }
-    var recs = [];
-    if (suelo !== null && suelo < 16 && lp < 10) recs.push("Suelo seco y sin alivio a la vista: riego prioritario en los cultivos sensibles.");
-    if (lp >= 40) recs.push("Lluvias importantes en camino: revise los drenajes y evite fertilizar justo antes de que lleguen.");
-    if (l7 >= 60) recs.push("Suelo cargado por las lluvias recientes: posponga las labores con maquinaria pesada en suelos arcillosos.");
-    if (esp30 && esp30 >= 15 && (l30 / esp30 - 1) <= -0.4) recs.push("Déficit marcado de lluvia en 30 días: priorice el riego y la cobertura del suelo para guardar humedad.");
-    if (et0 >= 35) recs.push("Alta demanda de agua de la atmósfera: riegue en horas frescas para perder menos por evaporación.");
-    if (!recs.length) recs.push("Condiciones dentro de lo normal para la época en esta zona; mantenga el monitoreo semanal.");
-    return '<div class="agro-card"><h3>' + z[0] + ' <span class="mc-nota">(ref. ' + z[3] + ')</span></h3>' +
-      '<div class="fila"><span>Lluvia últimos 7 días</span><b>' + f1(l7) + ' mm</b></div>' +
-      '<div class="fila"><span>Lluvia últimos 30 días</span><b>' + f1(l30) + ' mm</b></div>' +
-      '<div class="fila"><span>Balance de 30 días</span><b>' + defTxt + '</b></div>' +
-      '<div class="fila"><span>Lluvia próximos 7 días</span><b>' + f1(lp) + ' mm</b></div>' +
-      '<div class="fila"><span>Humedad del suelo hoy</span><b>' + (suelo === null ? "—" : Math.round(suelo) + " % · " + estSuelo) + '</b></div>' +
-      '<div class="fila"><span>Demanda de agua (ET₀, 7 días)</span><b>' + f1(et0) + ' mm</b></div>' +
-      "<ul>" + recs.slice(0, 3).map(function(r){ return "<li>" + r + "</li>"; }).join("") + "</ul></div>";
+/* ---------- AGROMETEOROLOGÍA (v10: por provincias y por decenas) ----------
+   Hasta la v9 el boletín agregaba tres zonas (Occidente/Centro/Oriente).
+   Jorge pidió el 29-oct el desglose POR PROVINCIA (las 16, selector como
+   el resto del portal) y el comportamiento por DECENAS (1–10, 11–20 y
+   21–fin de mes, la práctica de los boletines agrometeorológicos): de la
+   provincia elegida se muestra cada decena del mes en curso con su lluvia
+   acumulada y su temperatura media sobre los días ya transcurridos de la
+   serie diaria real, la decena en curso marcada, y la decena siguiente en
+   pronóstico (los próximos 10 días). Se mantienen la humedad del suelo,
+   la ET₀ y las recomendaciones de la vista anterior. Una sola llamada por
+   provincia (serie diaria del día 1 a hoy+10 y suelo horario), servida
+   por la caché persistente mc5: volver a una provincia ya vista no pide
+   nada. Nada de regiones en esta sección. */
+var AGRO_NORM = { "Mayabeque": "San José de las Lajas", "Isla de la Juventud": "Nueva Gerona", "Granma": "Bayamo", "Villa Clara": "Santa Clara" };
+var agroInit = false, agroListo = false, agroSel = 0, agroDatos = {};
+function agroDiasEnMes(y, m){ return [31, ((y % 4 === 0 && y % 100 !== 0) || y % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m]; }
+function agroSumaDias(iso, n){ var d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+function agroSerie(loc){
+  var m = {};
+  (loc.daily.time || []).forEach(function(t, i){
+    m[t] = { ll: loc.daily.precipitation_sum ? loc.daily.precipitation_sum[i] : null,
+             tm: loc.daily.temperature_2m_mean ? loc.daily.temperature_2m_mean[i] : null,
+             et: loc.daily.et0_fao_evapotranspiration ? loc.daily.et0_fao_evapotranspiration[i] : null };
+  });
+  return m;
+}
+function agroRango(serie, a, b){
+  var ll = 0, ts = [], tn = 0, d = a;
+  while (d <= b){
+    var r = serie[d];
+    if (r){
+      if (r.ll !== null && r.ll !== undefined) ll += r.ll;
+      if (r.tm !== null && r.tm !== undefined) ts.push(r.tm);
+    }
+    tn++; d = agroSumaDias(d, 1);
+  }
+  return { ll: ll, tm: ts.length ? ts.reduce(function(x, y){ return x + y; }, 0) / ts.length : null, dias: tn };
+}
+async function agroCargar(i){
+  agroSel = i;
+  document.querySelectorAll("#agroProvs button").forEach(function(b, bi){ b.classList.toggle("act", bi === i); });
+  var P = PROVS[i], panel = $("agroPanel");
+  if (!agroDatos[i]){
+    panel.innerHTML = '<p class="mc-nota">Cargando el boletín de ' + P.nom + "…</p>";
+    var hoy = hoyISO(), ini = hoy.slice(0, 8) + "01", fin = agroSumaDias(hoy, 10);
+    var u = "https://api.open-meteo.com/v1/forecast?latitude=" + P.lat + "&longitude=" + P.lon +
+      "&daily=precipitation_sum,temperature_2m_mean,et0_fao_evapotranspiration&hourly=soil_moisture_0_to_7cm,soil_moisture_7_to_28cm" +
+      "&timezone=America%2FHavana&start_date=" + ini + "&end_date=" + fin;
+    var j = null;
+    try { j = await mc5FetchJSON(u); } catch(e){}
+    if (!j || !j.daily){ panel.innerHTML = '<p class="mc-nota">No se pudo cargar el boletín de ' + P.nom + " en este momento. Toque la provincia de nuevo para reintentar.</p>"; return; }
+    agroDatos[i] = j;
+  }
+  pintarAgro(i);
+}
+function pintarAgro(i){
+  var P = PROVS[i], loc = agroDatos[i]; if (!loc) return;
+  var hoy = hoyISO(), y = +hoy.slice(0, 4), mo = +hoy.slice(5, 7) - 1, diaHoy = +hoy.slice(8, 10);
+  var diasMes = agroDiasEnMes(y, mo), mesISO = hoy.slice(0, 8);
+  var fc = function(iso){ return (+iso.slice(8, 10)) + " de " + MESES[+iso.slice(5, 7) - 1]; };
+  var serie = agroSerie(loc);
+  function decena(d0, d1){
+    if (diaHoy < d0) return { vacia: true, total: d1 - d0 + 1 };
+    var hasta = Math.min(d1, diaHoy);
+    var r = agroRango(serie, mesISO + String(d0).padStart(2, "0"), mesISO + String(hasta).padStart(2, "0"));
+    return { ll: r.ll, tm: r.tm, contados: hasta - d0 + 1, total: d1 - d0 + 1, curso: diaHoy <= d1 };
+  }
+  var decs = [decena(1, 10), decena(11, 20), decena(21, diasMes)];
+  var pron = agroRango(serie, agroSumaDias(hoy, 1), agroSumaDias(hoy, 10));
+  var H = loc.hourly, s1 = [], s2 = [];
+  if (H && H.time) H.time.forEach(function(t, ix){
+    if (t.slice(0, 10) === hoy){
+      if (H.soil_moisture_0_to_7cm[ix] != null) s1.push(H.soil_moisture_0_to_7cm[ix]);
+      if (H.soil_moisture_7_to_28cm[ix] != null) s2.push(H.soil_moisture_7_to_28cm[ix]);
+    }
+  });
+  var prom = function(a){ return a.length ? a.reduce(function(x, y2){ return x + y2; }, 0) / a.length : null; };
+  var suelo = (prom(s1) !== null && prom(s2) !== null) ? (prom(s1) + prom(s2)) / 2 * 100 : null;
+  var estSuelo = suelo === null ? "sin dato" : suelo < 16 ? "Seco" : suelo <= 26 ? "Aceptable" : "Húmedo";
+  var et0 = 0, l7 = 0, k, rr;
+  for (k = 1; k <= 7; k++){ rr = serie[agroSumaDias(hoy, k)]; if (rr && rr.et) et0 += rr.et; }
+  for (k = 0; k <= 6; k++){ rr = serie[agroSumaDias(hoy, -k)]; if (rr && rr.ll) l7 += rr.ll; }
+  var mesLl = 0; decs.forEach(function(dc){ if (!dc.vacia) mesLl += dc.ll; });
+  var claveN = AGRO_NORM[P.nom] || P.nom;
+  var N = (typeof NORMALES !== "undefined" && NORMALES[claveN]) ? NORMALES[claveN] : null;
+  var espMes = N ? N.mensual[mo][2] * diaHoy / diasMes : null;
+  var balTxt = "—";
+  if (espMes && espMes >= 8){ var df = (mesLl / espMes - 1) * 100; balTxt = (df > 0 ? "+" : "") + Math.round(df) + " % frente a lo normal a esta fecha"; }
+  var filas = decs.map(function(dc, di){
+    var nom = "Decena " + (di + 1) + " (" + [1, 11, 21][di] + "–" + [10, 20, diasMes][di] + ")";
+    if (dc.vacia) return "<tr><td><b>" + nom + "</b></td><td class='num'>—</td><td class='num'>—</td><td>Todavía no comienza</td></tr>";
+    return "<tr><td><b>" + nom + "</b>" + (dc.curso ? ' <span class="agro-curso">EN CURSO</span>' : "") + "</td>" +
+      "<td class='num'><b>" + f1(dc.ll) + " mm</b></td><td class='num'>" + (dc.tm === null ? "—" : f1(dc.tm) + " °C") + "</td>" +
+      "<td>" + dc.contados + " de " + dc.total + " días</td></tr>";
   }).join("");
+  var fPron = "<tr class='agro-fut'><td><b>Próximos 10 días</b> (pronóstico)<br><span class='mc-nota'>del " +
+    fc(agroSumaDias(hoy, 1)) + " al " + fc(agroSumaDias(hoy, 10)) + "</span></td>" +
+    "<td class='num'><b>" + f1(pron.ll) + " mm</b></td><td class='num'>" + (pron.tm === null ? "—" : f1(pron.tm) + " °C") + "</td><td>10 días</td></tr>";
+  var recs = [];
+  if (suelo !== null && suelo < 16 && pron.ll < 10) recs.push("Suelo seco y sin alivio a la vista: riego prioritario en los cultivos sensibles.");
+  if (pron.ll >= 40) recs.push("Lluvias importantes en camino: revise los drenajes y evite fertilizar justo antes de que lleguen.");
+  if (l7 >= 60) recs.push("Suelo cargado por las lluvias de la última semana: posponga las labores con maquinaria pesada en suelos arcillosos.");
+  if (espMes && espMes >= 8 && (mesLl / espMes - 1) <= -0.4) recs.push("El mes va muy por debajo de lo normal en lluvia: priorice el riego y la cobertura del suelo para guardar humedad.");
+  if (et0 >= 35) recs.push("Alta demanda de agua de la atmósfera esta semana: riegue en horas frescas para perder menos por evaporación.");
+  if (!recs.length) recs.push("Condiciones dentro de lo normal para la época en esta provincia; mantenga el monitoreo por decenas.");
+  $("agroPanel").innerHTML =
+    '<div class="agro-card"><h3>' + P.nom + "</h3>" +
+    '<div class="mc-tabla-wrap"><table class="mc-tabla agro-dec"><thead><tr><th>Decena de ' + MESES[mo] + '</th><th class="num">Lluvia acumulada</th><th class="num">Temperatura media</th><th>Días contados</th></tr></thead><tbody>' +
+    filas + fPron + "</tbody></table></div>" +
+    '<div class="fila"><span>Lluvia últimos 7 días</span><b>' + f1(l7) + " mm</b></div>" +
+    '<div class="fila"><span>Mes en curso (' + diaHoy + ' días)</span><b>' + f1(mesLl) + " mm · " + balTxt + "</b></div>" +
+    '<div class="fila"><span>Humedad del suelo hoy</span><b>' + (suelo === null ? "—" : Math.round(suelo) + " % · " + estSuelo) + "</b></div>" +
+    '<div class="fila"><span>Demanda de agua (ET₀, próximos 7 días)</span><b>' + f1(et0) + " mm</b></div>" +
+    "<ul>" + recs.slice(0, 3).map(function(r){ return "<li>" + r + "</li>"; }).join("") + "</ul></div>";
   agroListo = true;
+}
+function initAgro(){
+  if (agroInit) return; agroInit = true;
+  $("agroProvs").innerHTML = PROVS.map(function(P, i){
+    return '<button type="button" data-ap="' + i + '"' + (i === 0 ? ' class="act"' : "") + ">" + P.nom + "</button>";
+  }).join("");
+  document.querySelectorAll("#agroProvs button").forEach(function(b){
+    b.addEventListener("click", function(){ agroCargar(+b.dataset.ap); });
+  });
+  agroCargar(0);
 }
 
 /* ---------- arranque con el motor ---------- */
@@ -4743,7 +5085,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v9",
+  version: "v10",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
@@ -4756,10 +5098,11 @@ window.MC_V2 = {
     return { overlay: modS.diag.overlay, barbas: modS.diag.barbas, particulas: modS.diag.particulas, campo: modS.diag.campo, ciuExcluidas: modS.diag.ciuExcluidas, muns: modS.diag.muns, pruebaFlujo: test };
   },
   campoImg: function(){ return modS.lastImg; },
+  sintesisNHC: nhcSintesis,
   valorEnRejilla: function(j){ return (modS.lastData && modS.lastData[j]) ? modS.lastData[j][modS.lastHIdx] : null; },
   estado: function(){
     return { init: Object.keys(initHecho), vista: vistaActual, situacion: sitListo,
-      estaciones: estLista ? estLista.length : 0, salud: !!salDatos, agro: agroListo, ciclones: cicListo,
+      estaciones: estLista ? estLista.length : 0, salud: !!salDatos, agro: agroListo, ciclones: cicListo, nhc: nhcInfo,
       satCapas: satS.capas.length, radCapas: radS.capas.length,
       satIdx: satS.idx,
       satLimites: { activo: satS.limites, encuadre: satS.encuadre, paneZ: 650,
@@ -4769,7 +5112,7 @@ window.MC_V2 = {
         munEnMapa: !!(satS.map && satS.limMun && satS.map.hasLayer(satS.limMun)),
         estiloProv: (satS.limProv && satS.limProv.getLayers().length) ? satS.limProv.getLayers()[0].options : null,
         estiloMun: (satS.limMun && satS.limMun.getLayers().length) ? satS.limMun.getLayers()[0].options : null },
-      modelos: { modelo: modS.model, variable: modS.variable, hora: modS.hour, capa: !!modS.layer, ciudades: modS.cities ? modS.cities.getLayers().length : 0,
+      modelos: { modelo: modS.model, variable: modS.variable, hora: modS.hour, franja: modS.diag.franja || null, capa: !!modS.layer, ciudades: modS.cities ? modS.cities.getLayers().length : 0,
         rejilla: MODNX * MODNY, overlay: modS.diag.overlay, barbas: modS.diag.barbas,
         particulas: { n: modS.diag.particulas.n, frames: modS.diag.particulas.frames, activa: modS.diag.particulas.activa }, campo: modS.diag.campo } };
   }
