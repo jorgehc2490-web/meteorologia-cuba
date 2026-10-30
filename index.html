@@ -282,6 +282,11 @@
      tema claro del portal; ya no flota sobre el mapa. */
   .dockChips.fenCab { position:static; max-width:1064px; margin:0 auto 10px; padding:0 6px; -webkit-mask-image:none; mask-image:none; }
   .dockChips.fenCab #chips button { background:#f2f7fa; color:#0a2f47; border-color:#b9cfdd; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; }
+  /* v19: en la cabecera (fuera del mapa) la fila de fenómenos SÍ debe recibir
+     la rueda y el arrastre en toda su superficie — el pointer-events:none de
+     la v3 era para cuando flotaba sobre el mapa y dejaba la fila sorda. */
+  .dockChips.fenCab #chips { pointer-events:auto; cursor:grab; }
+  .dockChips.fenCab #chips:active { cursor:grabbing; }
   .dockChips.fenCab #chips button.act { background:#0d4066; color:#fff; border-color:#0d4066; }
   .dockChips.fenCab #chips button.act .dot { box-shadow:0 0 0 1.5px rgba(255,255,255,.55); }
   @media (max-width:640px){ .dockChips.fenCab { margin:0 8px 8px; padding:0; } }
@@ -6263,7 +6268,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v18",
+  version: "v19",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
