@@ -272,8 +272,18 @@
   .mc-sug-it .nm { font-weight:700; }
   .mc-sug-it .pr { margin-left:auto; font-size:13px; color:#5b7a8d; white-space:nowrap; }
   .mc-sug-it:active, .mc-sug-it.act { background:#e8f2f9; }
-  /* v6: la fila de píldoras de fenómenos sobre el mapa de Avisos se retira */
-  .dockChips { display:none !important; }
+  /* v14: la fila de píldoras de fenómenos de Avisos VUELVE, en la cabecera
+     de la sección (reversión de la retirada de la v6, pedida por Jorge el
+     30-oct: lo que él había pedido quitar en su día era la PÍLDORA NEGRA
+     de las etiquetas nombre+valor, no este selector; la fila se eliminó
+     por una interpretación equivocada de aquella corrección). La fila va
+     en flujo bajo el título de Avisos, cerca del selector de días, con el
+     tema claro del portal; ya no flota sobre el mapa. */
+  .dockChips.fenCab { position:static; max-width:1064px; margin:0 auto 10px; padding:0 6px; -webkit-mask-image:none; mask-image:none; }
+  .dockChips.fenCab #chips button { background:#f2f7fa; color:#0a2f47; border-color:#b9cfdd; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .dockChips.fenCab #chips button.act { background:#0d4066; color:#fff; border-color:#0d4066; }
+  .dockChips.fenCab #chips button.act .dot { box-shadow:0 0 0 1.5px rgba(255,255,255,.55); }
+  @media (max-width:640px){ .dockChips.fenCab { margin:0 8px 8px; padding:0; } }
   .mc-busca-row input { flex:1 1 auto; min-width:0; font:inherit; font-size:16px; padding:11px 13px; border:1.5px solid #9fc3dd; border-radius:11px; background:#fff; color:#17394d; }
   .mc-busca-row input:focus { outline:2px solid #0f5d8f; border-color:#0f5d8f; }
   .mc-busca-row button { flex:0 0 auto; font:inherit; font-size:15px; font-weight:700; border:none; border-radius:11px; background:#0f5d8f; color:#fff; padding:11px 18px; cursor:pointer; }
@@ -506,6 +516,7 @@
     <p class="mc-nota">Extremos calculados del modelo (modelo GFS) sobre los 168 municipios; observaciones: reportes METAR reales (red OMM) vía IEM / NWS. El detalle completo está en <a href="#estaciones">Estaciones</a>.</p>
   </section>
 <div class="mc-sec-cab-mapa" id="avisos"><h2>🗺️ Avisos · Mapa interactivo</h2><p>El semáforo de riesgo por municipio y provincia: 9 peligros con niveles de Jorge, para hoy, mañana y pasado mañana. Toque un fenómeno para verlo solo en el mapa; toque un municipio o una provincia para su detalle y recomendaciones.</p></div>
+<div class="dockChips fenCab"><div id="chips"></div></div>
   <section class="hero">
     <div id="map"></div>
     <div class="topbar">
@@ -520,7 +531,6 @@
     <button data-dia="2">Pasado mañana<small></small></button>
   </div>
     </div>
-    <div class="dockChips"><div id="chips"></div></div>
     <div id="modoBar" class="oculto"></div>
     <div class="mapBtns">
       <button class="mapBtn zoomBtn" id="btnZoomMas" type="button" aria-label="Acercar el mapa">+</button>
@@ -730,11 +740,12 @@
     <div id="modLeyenda"></div>
     <p class="mc-nota">Datos: salidas de los modelos GFS (NOAA), ECMWF e ICON (DWD). Son salidas de modelo sin corregir: compárelas entre sí y con los <a href="#avisos">avisos</a>, que ya llevan el criterio del meteorólogo. Lluvia = mm de la hora; viento en km/h; presión en hPa al nivel del mar.</p>
     <h3 class="mc-sub">🌩️ Tiempo severo — HRRR Caribe (experimental)</h3>
-    <p>El modelo de tormentas <b>HRRR del Caribe</b> (laboratorio GSL de la NOAA; rejilla de unos 3 km que cubre la Florida, Cuba y las Bahamas) corre una vez al día y dibuja, hora a hora, los campos que mejor anticipan el <b>tiempo severo</b>: dónde se forman las celdas, qué rachas pueden traer y cuánto combustible (CAPE) tienen. Elija la hora de pronóstico con los botones: todos los mapas son de la misma corrida y de la misma hora válida.</p>
+    <p>El modelo de tormentas <b>HRRR del Caribe</b> (laboratorio GSL de la NOAA; rejilla de unos 3 km que cubre la Florida, Cuba y las Bahamas) corre una vez al día y dibuja, hora a hora, los campos que mejor anticipan el <b>tiempo severo</b>. Los mapas usan el encuadre <b>Florida</b> del laboratorio: Cuba entera, de Pinar del Río a Guantánamo, en el centro y a gran tamaño. Elija el <b>mapa</b> con el selector — el «radar simulado», la reflectividad en altura que delata el granizo, la energía (CAPE), el índice de levantamiento, la humedad de la columna, la cizalladura y la helicidad de ascenso — y la <b>hora de pronóstico</b> con los botones de −3 h/+3 h: todos los mapas son de la misma corrida y, al cambiar de hora, el mapa elegido se vuelve a pedir para esa hora válida.</p>
     <p class="sev-exp">⚠️ <b>Producto experimental</b> — el propio laboratorio lo ofrece «solo para investigación, no para operaciones» (<i>for research purposes only — not intended for operational use</i>) y sin garantía de continuidad. Es un <b>apoyo al análisis</b>, nunca la base de los avisos de esta página.</p>
+    <div class="mc-ctl"><span>Mapa:</span><span id="sevProds"></span></div>
     <div class="mc-ctl"><button id="sevMenos" type="button">◀ −3 h</button><span class="mc-hora" id="sevEstado">Sin cargar: se activa al abrir esta sección.</span><button id="sevMas" type="button">+3 h ▶</button></div>
     <div id="sevFigs"></div>
-    <p class="mc-nota">La <b>amenaza de rayos</b> y el <b>tamaño del granizo (HAILCAST)</b> también los calcula este modelo, pero el laboratorio no publica esos dos mapas para el dominio del Caribe — por eso no aparecen aquí —. Las imágenes se generan en el servidor del laboratorio al pedirlas: la primera carga de cada hora puede tardar unos segundos. Fuente: HRRR_CAR, Global Systems Laboratory (NOAA). <a href="https://rapidrefresh.noaa.gov/hrrr/CARIBBEAN/Welcome.cgi?dsKey=hrrr_car_jet" target="_blank" rel="noopener">Página del modelo ↗</a></p>
+    <p class="mc-nota">La <b>amenaza de rayos</b> y el <b>tamaño del granizo (HAILCAST)</b> también los calcula este modelo, pero el laboratorio no publica esos dos mapas para el dominio del Caribe — por eso no aparecen aquí —. Las imágenes se generan en el servidor del laboratorio al pedirlas: la primera carga de cada mapa y de cada hora puede tardar unos segundos, y cada mapa se pide solo cuando se elige en el selector. Fuente: HRRR_CAR, Global Systems Laboratory (NOAA). <a href="https://rapidrefresh.noaa.gov/hrrr/CARIBBEAN/Welcome.cgi?dsKey=hrrr_car_jet" target="_blank" rel="noopener">Página del modelo ↗</a></p>
   </section>
 
   <section class="mc-sec" id="ciclones" aria-label="Ciclones tropicales">
@@ -5339,7 +5350,7 @@ async function initAnaPropio(){
   }
 })();
 
-/* ---------- MODELOS · TIEMPO SEVERO — HRRR CARIBE (v12) ----------
+/* ---------- MODELOS · TIEMPO SEVERO — HRRR CARIBE (v12 · ampliado en v14) ----------
    Las imágenes del HRRR_CAR (GSL/NOAA) se sirven bajo demanda: el PNG
    de un producto/hora da 404 hasta que alguien pide su página de mapa
    (displayMapUpdated.cgi), que lo genera en el acto. El bloque lo
@@ -5349,27 +5360,57 @@ async function initAnaPropio(){
    0 a 36 h; por defecto se muestra el múltiplo de 3 más cercano a la
    hora actual. La amenaza de rayos y el granizo HAILCAST existen como
    filas del catálogo pero SIN enlace a mapa para este dominio: no se
-   publican, y el bloque lo dice en la página. */
+   publican, y el bloque lo dice en la página.
+   v14 (ajuste del mismo día, pedido de Jorge): los mapas son los del
+   subdominio FLORIDA del laboratorio (selector Domain: Full / Florida /
+   Puerto Rico), no los del dominio completo: en ese encuadre Cuba se
+   ve entera y grande, de Pinar a Guantánamo, con la Florida arriba.
+   El segmento de dominio va en la ruta (/Florida/) y en el código de
+   producto (mref_Florida_sfc), y el CGI de calentamiento lleva
+   domain=Florida. Los 10 productos existen también en este subdominio
+   (verificado producto a producto con cargas reales: 20/20 imágenes
+   de 712×676 px en la corrida 2026103000, f012/f015).
+   v14: el bloque pasa de 4 a 10 mapas. Los índices de tormenta del
+   catálogo SÍ enlazan mapa para el Caribe (verificado en vivo el
+   30-oct-2026 con la corrida 2026103000: imágenes reales generadas de
+   LI, CAPE más inestable, agua precipitable, cizalladura, helicidad
+   de ascenso y reflectividad a −10 °C; la nota de la v12 que lo
+   negaba quedó desmentida). Para no saturar la página, los diez
+   mapas van tras un SELECTOR de producto: solo se ve — y solo se
+   pide — el mapa elegido; al cambiar de hora se vuelve a pedir solo
+   ese mapa, y los demás se piden cuando se eligen. */
 const SEV_PRODS = [
-  { id: "mref", pt: "mref_full_sfc", nombre: "Reflectividad máxima a 1 km — el «radar simulado»",
+  { id: "mref", pt: "mref_Florida_sfc", corto: "Radar simulado", nombre: "Reflectividad máxima a 1 km — el «radar simulado»",
     desc: "Las celdas de tormenta que el modelo dibuja para esa hora, en dBZ: es lo más parecido a un radar sobre Cuba. Los núcleos de 40–50 dBZ o más son tormentas fuertes, con lluvia intensa y posibles rachas." },
-  { id: "gust", pt: "gust_full_10m", nombre: "Rachas potenciales a 10 m",
+  { id: "refm10", pt: "ref_Florida_maxm10", corto: "Reflectividad a −10 °C", nombre: "Reflectividad máxima a −10 °C — la pista del granizo",
+    desc: "La reflectividad a la altura donde el aire está a −10 °C, la zona de crecimiento del granizo: núcleos de 50 dBZ o más a esa altura delatan corrientes ascendentes capaces de sostener granizo, aunque abajo aún no se vea la celda madura." },
+  { id: "cape", pt: "cape_Florida_sfc", corto: "CAPE", nombre: "CAPE de superficie",
+    desc: "La energía disponible para las tormentas (J/kg): con valores sobre 2 000 el ambiente está cargado y las turbonadas pueden ser fuertes si algo las dispara." },
+  { id: "capemu", pt: "cape_Florida_mu", corto: "CAPE más inestable", nombre: "CAPE más inestable",
+    desc: "El CAPE de la parcela más inestable de la columna (J/kg): capta la energía aunque la superficie esté momentáneamente estabilizada — por ejemplo, tras el paso de una tormenta —; si sigue alto, el ambiente puede volver a cargar tormentas." },
+  { id: "li", pt: "li_Florida_best", corto: "Índice LI", nombre: "Mejor índice de levantamiento (LI)",
+    desc: "Cuánto más cálido que su entorno sube el aire al ascender, en °C: los valores negativos marcan inestabilidad, y por debajo de −4 el aire sube con fuerza y las tormentas pueden ser intensas; en positivo, el ambiente está estable." },
+  { id: "pwtr", pt: "pwtr_Florida_sfc", corto: "Agua precipitable", nombre: "Agua precipitable",
+    desc: "Todo el vapor de agua de la columna de aire, en milímetros: sobre 45–50 mm el ambiente es muy húmedo y las tormentas descargan lluvia torrencial en poco tiempo, el ingrediente de las inundaciones locales." },
+  { id: "shear6", pt: "shear_Florida_06km", corto: "Cizalladura 0–6 km", nombre: "Cizalladura del viento 0–6 km",
+    desc: "Cuánto cambia el viento entre el suelo y los 6 km, en nudos: con 35–40 kt o más las tormentas se organizan y duran (líneas, supercélulas); con menos de 20 kt son tormentas de pulso, breves y desordenadas, las típicas del trópico." },
+  { id: "hel25", pt: "hlcy_Florida_mx25", corto: "Helicidad de ascenso", nombre: "Helicidad de ascenso 2–5 km",
+    desc: "La rotación de las corrientes ascendentes entre 2 y 5 km (m²/s²): es la huella de las supercélulas. Valores altos y sostenidos avisan de tormentas con rotación; cerca de cero, no hay organización severa aunque truene fuerte." },
+  { id: "gust", pt: "gust_Florida_10m", corto: "Rachas potenciales", nombre: "Rachas potenciales a 10 m",
     desc: "La racha máxima que las tormentas y el flujo pueden producir, en nudos (35 kt ≈ 65 km/h): el dato clave para los desplomes y las líneas de tormenta de la tarde." },
-  { id: "totp", pt: "totp_full_sfc", nombre: "Lluvia en 1 hora",
-    desc: "La lluvia de la última hora en pulgadas (1 pulgada ≈ 25 mm): señala dónde el modelo concentra la lluvia más intensa en poco tiempo, el riesgo de inundaciones locales." },
-  { id: "cape", pt: "cape_full_sfc", nombre: "CAPE de superficie",
-    desc: "La energía disponible para las tormentas (J/kg): con valores sobre 2 000 el ambiente está cargado y las turbonadas pueden ser fuertes si algo las dispara." }
+  { id: "totp", pt: "totp_Florida_sfc", corto: "Lluvia en 1 hora", nombre: "Lluvia en 1 hora",
+    desc: "La lluvia de la última hora en pulgadas (1 pulgada ≈ 25 mm): señala dónde el modelo concentra la lluvia más intensa en poco tiempo, el riesgo de inundaciones locales." }
 ];
-const sevS = { init: false, corrida: null, fcst: 6, figs: {},
-  diag: { corrida: null, fcst: null, figuras: {}, orden: [] } };
+const sevS = { init: false, corrida: null, fcst: 6, sel: "mref", figs: {},
+  diag: { corrida: null, fcst: null, seleccionado: "mref", figuras: {}, orden: [] } };
 function sevRuntimeDe(fecha){
   return fecha.getUTCFullYear() + "" + String(fecha.getUTCMonth() + 1).padStart(2, "0") + String(fecha.getUTCDate()).padStart(2, "0") + "00";
 }
 function sevURLImg(rt, pt, fc){
-  return "https://rapidrefresh.noaa.gov/hrrr/CARIBBEAN/for_web/hrrr_car_jet/" + rt + "/full/" + pt + "_f" + String(fc).padStart(3, "0") + ".png";
+  return "https://rapidrefresh.noaa.gov/hrrr/CARIBBEAN/for_web/hrrr_car_jet/" + rt + "/Florida/" + pt + "_f" + String(fc).padStart(3, "0") + ".png";
 }
 function sevURLCgi(rt, pt, fc){
-  return "https://rapidrefresh.noaa.gov/hrrr/CARIBBEAN/displayMapUpdated.cgi?keys=hrrr_car_jet:&runtime=" + rt + "&plot_type=" + pt + "&fcst=" + String(fc).padStart(3, "0") + "&time_inc=60&num_times=37&model=hrrr&ptitle=HRRR_CAR%20Model%20Fields&maxFcstLen=36&fcstStrLen=-1&domain=full&adtfn=1";
+  return "https://rapidrefresh.noaa.gov/hrrr/CARIBBEAN/displayMapUpdated.cgi?keys=hrrr_car_jet:&runtime=" + rt + "&plot_type=" + pt + "&fcst=" + String(fc).padStart(3, "0") + "&time_inc=60&num_times=37&model=hrrr&ptitle=HRRR_CAR%20Model%20Fields&maxFcstLen=36&fcstStrLen=-1&domain=Florida&adtfn=1";
 }
 function sevProbar(src, ms){
   return new Promise(res => {
@@ -5409,11 +5450,24 @@ function sevEstadoTxt(){
     " · pronóstico +" + sevS.fcst + " h " + sevValidezTxt().replace("· ", "· ");
 }
 function sevBuildFigs(){
+  // Selector de producto: un botón por mapa, el elegido con la clase
+  // activa del patrón del portal (.mc-ctl button.act).
+  const selWrap = document.getElementById("sevProds");
+  if (selWrap && !selWrap.childNodes.length){
+    SEV_PRODS.forEach(p => {
+      const b = document.createElement("button");
+      b.type = "button"; b.dataset.sev = p.id; b.textContent = p.corto;
+      if (p.id === sevS.sel) b.className = "act";
+      b.addEventListener("click", () => sevSel(p.id));
+      selWrap.appendChild(b);
+    });
+  }
   const wrap = document.getElementById("sevFigs");
   if (!wrap || wrap.childNodes.length) return;
   SEV_PRODS.forEach(p => {
     const fig = document.createElement("figure");
     fig.className = "sev-fig"; fig.dataset.prod = p.id;
+    fig.style.display = (p.id === sevS.sel) ? "" : "none";
     const img = document.createElement("img");
     img.alt = p.nombre; img.style.display = "none"; img.loading = "lazy";
     const cap = document.createElement("figcaption");
@@ -5423,18 +5477,31 @@ function sevBuildFigs(){
     fallo.textContent = "Este mapa no cargó desde el servidor del laboratorio; los demás siguen disponibles.";
     fig.appendChild(img); fig.appendChild(cap); fig.appendChild(fallo);
     wrap.appendChild(fig);
-    sevS.figs[p.id] = { def: p, el: fig, imgEl: img, valEl: cap.querySelector(".sev-val"), falloEl: fallo, estado: "pendiente" };
+    sevS.figs[p.id] = { def: p, el: fig, imgEl: img, valEl: cap.querySelector(".sev-val"), falloEl: fallo, estado: "pendiente", fcstOk: null };
+    sevS.diag.figuras[p.id] = "pendiente";
   });
   sevS.diag.orden = SEV_PRODS.map(p => p.id);
+}
+function sevSel(id){
+  if (!sevS.figs[id]) return;
+  sevS.sel = id; sevS.diag.seleccionado = id;
+  const selWrap = document.getElementById("sevProds");
+  if (selWrap) Array.prototype.forEach.call(selWrap.querySelectorAll("button"), b => {
+    if (b.dataset.sev === id) b.classList.add("act"); else b.classList.remove("act");
+  });
+  Object.keys(sevS.figs).forEach(k => { sevS.figs[k].el.style.display = (k === id) ? "" : "none"; });
+  const f = sevS.figs[id];
+  // Solo se pide el mapa si aún no se cargó para la hora vigente.
+  if (sevS.corrida && f.fcstOk !== sevS.fcst) sevCargarFigura(f);
 }
 async function sevCargarFigura(f){
   const ok = await sevHayMapa(sevS.corrida, f.def.pt, sevS.fcst);
   if (ok){
     f.imgEl.src = sevURLImg(sevS.corrida, f.def.pt, sevS.fcst);
-    f.imgEl.style.display = ""; f.falloEl.hidden = true; f.estado = "ok";
+    f.imgEl.style.display = ""; f.falloEl.hidden = true; f.estado = "ok"; f.fcstOk = sevS.fcst;
     f.valEl.textContent = sevValidezTxt();
   } else {
-    f.imgEl.style.display = "none"; f.falloEl.hidden = false; f.estado = "fallo";
+    f.imgEl.style.display = "none"; f.falloEl.hidden = false; f.estado = "fallo"; f.fcstOk = null;
     f.valEl.textContent = "";
   }
   sevS.diag.figuras[f.def.id] = f.estado;
@@ -5454,7 +5521,7 @@ async function initSevero(){
     const rt = cands[i];
     const runMs = Date.UTC(+rt.slice(0, 4), +rt.slice(4, 6) - 1, +rt.slice(6, 8), 0);
     const fc = Math.max(0, Math.min(36, Math.round((ahora.getTime() - runMs) / 3600e3 / 3) * 3));
-    if (await sevHayMapa(rt, "mref_full_sfc", fc)){ sevS.corrida = rt; sevS.fcst = fc; break; }
+    if (await sevHayMapa(rt, "mref_Florida_sfc", fc)){ sevS.corrida = rt; sevS.fcst = fc; break; }
   }
   if (!sevS.corrida){
     if (estado) estado.textContent = "El HRRR Caribe no respondió ahora mismo; el bloque se reintenta al volver a abrir Modelos.";
@@ -5464,7 +5531,9 @@ async function initSevero(){
   }
   sevS.diag.corrida = sevS.corrida; sevS.diag.fcst = sevS.fcst;
   sevEstadoTxt();
-  for (const id of Object.keys(sevS.figs)) await sevCargarFigura(sevS.figs[id]);
+  // v14: al abrir se pide SOLO el mapa seleccionado; los demás, al elegirse.
+  const f0 = sevS.figs[sevS.sel];
+  if (f0) await sevCargarFigura(f0);
 }
 function sevPaso(d){
   if (!sevS.corrida) return;
@@ -5472,7 +5541,9 @@ function sevPaso(d){
   if (nf === sevS.fcst) return;
   sevS.fcst = nf; sevS.diag.fcst = nf;
   sevEstadoTxt();
-  Object.keys(sevS.figs).forEach(id => { sevCargarFigura(sevS.figs[id]); });
+  // v14: al cambiar de hora solo se vuelve a pedir el mapa visible.
+  const f = sevS.figs[sevS.sel];
+  if (f) sevCargarFigura(f);
 }
 
 /* ---------- CLIMA (normales ERA5 incrustadas) ---------- */
@@ -5770,7 +5841,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v13",
+  version: "v14",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
@@ -5809,21 +5880,6 @@ window.MC_V2 = {
 };
 })();
 </script>
-<script>
-/* ===== METEOROLOGÍA CUBA · corrección v6 =====
-   Avisos: fuera la fila de píldoras de fenómenos sobre el mapa (decisión de
-   Jorge, 29-oct): teniendo los Modelos, ese selector no hace falta; el mapa
-   queda como al abrir, pintado con el fenómeno más significativo de cada
-   municipio, y la ficha de cada municipio sigue mostrando TODOS sus avisos
-   y recomendaciones. La fila se retira del DOM al final de la carga:
-   construirChips() del motor corre una sola vez al inicio y pintar() solo
-   alterna clases sobre los botones (#chips button), así que quitar el nodo
-   no rompe nada. La hoja de detalle bajo el mapa (con su tabla de
-   fenómenos) queda intacta, como pidió Jorge. */
-(function(){
-  var dock = document.querySelector(".dockChips");
-  if (dock && dock.parentNode) dock.parentNode.removeChild(dock);
-})();
-</script>
+<!-- v14: el script de retirada de la v6 se eliminó con la restauración del selector de fenómenos de Avisos (ver estructura-v14.md). -->
 </body>
 </html>
