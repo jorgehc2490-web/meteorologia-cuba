@@ -3789,6 +3789,17 @@ function reajustarMapaAvisos(){
   } catch(e){}
   try { window.dispatchEvent(new Event("resize")); } catch(e){}
 }
+function reajustarMapaModelos(){
+  /* v25: reencuadre al entrar en Modelos. El fitBounds de la creación no
+     bastaba: con el zoomSnap entero por defecto de Leaflet, el encuadre
+     de la rejilla (≈6,8) caía a zoom 6, idéntico a la vista ancha. */
+  try {
+    if (typeof modS !== "undefined" && modS.map){
+      modS.map.invalidateSize();
+      modS.map.fitBounds([[MODG.lat0 - 0.4, MODG.lon0 - 0.4], [MODG.lat1 + 0.4, MODG.lon1 + 0.4]]);
+    }
+  } catch(e){}
+}
 function reajustarMapaCiclones(){
   /* v24: el mapa de Ciclones se crea al cargar la página, con la sección
      oculta, y su fitBounds inicial sale con zoom de mundo entero; al entrar
@@ -3813,6 +3824,7 @@ function mostrarVista(n, sinScroll){
   ubicarFicha();
   if (n === "avisos") setTimeout(reajustarMapaAvisos, 80);
   if (n === "ciclones") setTimeout(reajustarMapaCiclones, 80);
+  if (n === "modelos") setTimeout(reajustarMapaModelos, 80);
   if (!sinScroll){
     var cab = document.querySelector("header.mc-head");
     if (cab) try { cab.scrollIntoView({ block: "start" }); } catch(e){}
@@ -4510,7 +4522,7 @@ function radSMostrar(){
 }
 async function initRadares(){
   if (radS.init) return; radS.init = true;
-  radS.map = L.map("mapRad", { scrollWheelZoom: false }).setView([21.6, -79.3], 6);
+  radS.map = L.map("mapRad", { scrollWheelZoom: false, zoomSnap: 0.25, zoomDelta: 0.5 }).setView([21.6, -79.3], 6);
   /* v23: encuadre cerca de Cuba (la ventana aprobada para Clima) y marcas
      de provincias y municipios sobre el mosaico, con las geometrías del
      mapa de Avisos. */
@@ -5083,7 +5095,7 @@ async function modRender(){
 }
 function initModelos(){
   if (modS.init) return; modS.init = true;
-  modS.map = L.map("mapMod", { scrollWheelZoom: false }).setView([21.6, -79.3], 6);
+  modS.map = L.map("mapMod", { scrollWheelZoom: false, zoomSnap: 0.25, zoomDelta: 0.5 }).setView([21.6, -79.3], 6);
   /* v22: encuadre cerrado a la rejilla del pronóstico (mismo margen que el
      análisis de superficie): la vista ancha del Caribe dejaba la rejilla
      como un rectángulo flotando en el centro y se veía extraño. */
@@ -5284,7 +5296,7 @@ async function cicMapaInit(){
   if (cicS.map){ cicS.map.invalidateSize(); return; }
   if (cicS.init) return;
   cicS.init = true;
-  cicS.map = L.map("mapCic", { scrollWheelZoom: false, maxBounds: [[-20, -130], [70, 20]], maxBoundsViscosity: 0.7 });
+  cicS.map = L.map("mapCic", { scrollWheelZoom: false, zoomSnap: 0.25, zoomDelta: 0.5, maxBounds: [[-20, -130], [70, 20]], maxBoundsViscosity: 0.7 });
   cicS.map.fitBounds([[3.5, -103], [46, -8]]);
   L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 12, attribution: "© Esri · Sistemas y zonas: NHC / NOAA", noWrap: true }).addTo(cicS.map);
   const pill = document.getElementById("cicPill");
@@ -6327,7 +6339,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v24",
+  version: "v25",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
