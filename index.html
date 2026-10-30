@@ -866,11 +866,11 @@
     </div>
   </section>
 
-  <footer class="mc-foot"><div class="mc-foot-in"><p class="mc-foot-cred">Creado por el meteorólogo MSc. <b>Jorge Félix Hernández Capote</b> · LABMET — Laboratorio Meteorológico</p><p><b>Meteorología Cuba</b> es un servicio informativo <b>independiente</b>, elaborado a partir de modelos numéricos y fuentes públicas de datos. Los avisos oficiales en Cuba los emiten el <b>INSMET</b> y la <b>Defensa Civil</b>: ante peligro, siga sus indicaciones.</p><p class="mc-foot-fuentes">Datos: modelos numéricos (GFS y oleaje) · NOAA / NHC (ciclones) · NASA GIBS e IMERG (satélite y lluvia estimada) · RainViewer (radar) · IEM / NWS (estaciones METAR) · © 2026 Meteorología Cuba · meteorologia-cuba.com</p></div></footer>
+  <footer class="mc-foot"><div class="mc-foot-in"><p class="mc-foot-cred">Creado por el meteorólogo MSc. <b>Jorge Félix Hernández Capote</b> · LABMET — Laboratorio Meteorológico</p><p><b>Meteorología Cuba</b> es un servicio informativo <b>independiente</b>, elaborado a partir de modelos numéricos y fuentes públicas de datos. Los avisos oficiales en Cuba los emiten el <b>INSMET</b> y la <b>Defensa Civil</b>: ante peligro, siga sus indicaciones.</p><p class="mc-foot-fuentes">Datos: modelos numéricos (GFS y oleaje) · NOAA / NHC (ciclones) · NASA GIBS e IMERG (satélite y lluvia estimada) · RainViewer (radar) · IEM / NWS (estaciones METAR) · OpenWeatherMap (tiempo hoy) · Datos abiertos de Open-Meteo (CC BY 4.0) · © 2026 Meteorología Cuba · meteorologia-cuba.com</p></div></footer>
 
 </div>
 
-<footer>
+<footer style="display:none" aria-hidden="true">
   Datos: modelo GFS · Estado del mar: modelo de oleaje · Ciclones: NHC (NOAA) · Estaciones: IEM / NWS (METAR, red OMM) · Tiempo hoy: OpenWeatherMap · Datos abiertos de Open-Meteo (CC BY 4.0) · <span id="actualizado">Actualizado: —</span><br>
   LABMET · Laboratorio Meteorológico — Producto informativo independiente.
 </footer>
@@ -6268,7 +6268,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v20",
+  version: "v21",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
