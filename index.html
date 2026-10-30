@@ -321,6 +321,13 @@
   .redBtn:hover { background:rgba(255,198,58,.18); }
   .imergBar { height:8px; border-radius:4px; background:linear-gradient(90deg,#009f0f 0%,#8fd600 30%,#ffe600 55%,#ff9000 75%,#ff2a00 90%,#c000c0 100%); max-width:420px; }
   .imergTicks { display:flex; justify-content:space-between; font-size:10.5px; color:#5b7180; max-width:420px; margin-top:2px; }
+  /* v30: sección «Apps de LABMET» */
+  .appsGrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(235px,1fr)); gap:10px; margin:10px 0 4px; }
+  .appCard { border:1.5px solid #b9cfdd; border-radius:12px; padding:13px 14px; background:#fff; }
+  .appCard .apIco { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:10px; background:#0d4066; color:#fff; font-size:19px; margin-bottom:7px; }
+  .appCard b { display:block; font-size:15.5px; color:#0a2f47; }
+  .appCard p { font-size:13px; color:#46617a; line-height:1.5; margin:4px 0 10px; }
+  .appsHow { background:#eef5fa; border:1px solid #b9cfdd; border-radius:12px; padding:12px 15px; font-size:13.5px; line-height:1.65; color:#24455c; margin-top:12px; }
   .dockChips.fenCab #chips button.act { background:#0d4066; color:#fff; border-color:#0d4066; }
   .dockChips.fenCab #chips button.act .dot { box-shadow:0 0 0 1.5px rgba(255,255,255,.55); }
   @media (max-width:640px){ .dockChips.fenCab { margin:0 8px 8px; padding:0; } }
@@ -560,7 +567,7 @@
     </g>
   </g>
 </svg><span class="mc-word"><strong>Meteorología Cuba</strong><small>Información meteorológica especializada</small></span></a><div class="mc-head-der"><span class="mc-dom">meteorologia-cuba.com</span><span class="mc-chip-noof">Servicio independiente</span></div></div><nav class="mc-nav" id="mcNav" aria-label="Secciones de Meteorología Cuba"><div class="mc-nav-in">
-<a href="#situacion" data-nav="situacion" class="act">Situación actual</a><a href="#analisis" data-nav="analisis">Análisis y pronóstico</a><a href="#avisos" data-nav="avisos">Avisos · Mapa interactivo</a><a href="#satelite" data-nav="satelite">Satélite</a><a href="#radares" data-nav="radares">Radares</a><a href="#modelos" data-nav="modelos">Modelos de pronóstico</a><a href="#ciclones" data-nav="ciclones">Ciclones tropicales</a><a href="#clima" data-nav="clima">Clima</a><a href="#salud" data-nav="salud">Tiempo y salud</a><a href="#agro" data-nav="agro">Agrometeorología</a><a href="#estaciones" data-nav="estaciones">Estaciones</a><a href="#creador" data-nav="creador">Sobre el creador</a>
+<a href="#situacion" data-nav="situacion" class="act">Situación actual</a><a href="#analisis" data-nav="analisis">Análisis y pronóstico</a><a href="#avisos" data-nav="avisos">Avisos · Mapa interactivo</a><a href="#satelite" data-nav="satelite">Satélite</a><a href="#radares" data-nav="radares">Radares</a><a href="#modelos" data-nav="modelos">Modelos de pronóstico</a><a href="#ciclones" data-nav="ciclones">Ciclones tropicales</a><a href="#clima" data-nav="clima">Clima</a><a href="#salud" data-nav="salud">Tiempo y salud</a><a href="#agro" data-nav="agro">Agrometeorología</a><a href="#estaciones" data-nav="estaciones">Estaciones</a><a href="#apps" data-nav="apps">Apps de LABMET</a><a href="#creador" data-nav="creador">Sobre el creador</a>
 </div></nav></header>
 <div id="app" class="oculto">
   <div class="mc-top"><div class="mc-busca-card"><h1>El tiempo en tu municipio</h1><p>Escribe tu municipio y mira su nivel de riesgo y su pronóstico. Cubre los 168 municipios de Cuba.</p><div class="mc-busca-row"><input id="mcBusca" type="text" placeholder="Ej.: Santa Clara, Bayamo, Pinar del Río…" autocomplete="off"><button id="mcBuscaBtn" type="button">Ver</button></div><div id="mcSug" class="mc-sug oculto"></div><div class="mc-busca-msg" id="mcBuscaMsg"></div><div class="mc-vista"><span class="lblv">Vista del mapa</span><span class="mc-seg" id="mcVistaSeg"><button data-vista="mun" class="act" type="button">Municipios</button><button data-vista="prov" type="button">Provincias</button></span><span class="mc-ley" id="mcLey"></span></div></div></div>
@@ -571,7 +578,7 @@
       <p class="mc-resumen" id="mcInicioResumen">Cargando el resumen de hoy…</p>
       <p class="mc-nota">Resumen breve del día. Para ver cada tema completo, toca su tarjeta o su opción del menú: se muestra una sección a la vez, como en una app.</p>
     </section>
-    <section class="mc-accesos" aria-label="Accesos rápidos"><button class="mc-acc" data-ir2="situacion" type="button"><span class="ic">🌡️</span><span class="tt">Situación actual</span><span class="ds">Extremos del día, resumen en lenguaje llano y observaciones</span></button><button class="mc-acc" data-ir2="analisis" type="button"><span class="ic">📈</span><span class="tt">Análisis y pronóstico</span><span class="ds">Cartas de superficie, el día por franjas, acumulado de lluvia y el último video</span></button><button class="mc-acc" data-ir2="avisos" type="button"><span class="ic">🗺️</span><span class="tt">Avisos · Mapa</span><span class="ds">El semáforo de riesgo por municipio y provincia</span></button><button class="mc-acc" data-ir2="satelite" type="button"><span class="ic">🛰️</span><span class="tt">Satélite</span><span class="ds">Imagen GOES del Caribe y Cuba, GeoColor e infrarrojo</span></button><button class="mc-acc" data-ir2="radares" type="button"><span class="ic">📡</span><span class="tt">Radares</span><span class="ds">Mosaico de radar animado y radares del área</span></button><button class="mc-acc" data-ir2="modelos" type="button"><span class="ic">🧭</span><span class="tt">Modelos</span><span class="ds">GFS, ECMWF e ICON dibujados: lluvia, viento, temperatura y presión</span></button><button class="mc-acc" data-ir2="ciclones" type="button"><span class="ic">🌀</span><span class="tt">Ciclones</span><span class="ds">Sistemas activos en el Atlántico según el NHC, en español claro</span></button><button class="mc-acc" data-ir2="clima" type="button"><span class="ic">📊</span><span class="tt">Clima</span><span class="ds">Normales 1991–2020, récords y hoy frente a lo normal</span></button><button class="mc-acc" data-ir2="salud" type="button"><span class="ic">❤️</span><span class="tt">Tiempo y salud</span><span class="ds">Asma, migraña, alergias, polen, artritis y calidad del aire</span></button><button class="mc-acc" data-ir2="agro" type="button"><span class="ic">🌾</span><span class="tt">Agrometeorología</span><span class="ds">Lluvia, humedad del suelo y recomendaciones para el campo</span></button><button class="mc-acc" data-ir2="estaciones" type="button"><span class="ic">🛬</span><span class="tt">Estaciones</span><span class="ds">Reportes METAR de los aeropuertos cubanos</span></button><button class="mc-acc" data-ir2="creador" type="button"><span class="ic">👤</span><span class="tt">Sobre el creador</span><span class="ds">Quién hace esta página y para qué</span></button></section>
+    <section class="mc-accesos" aria-label="Accesos rápidos"><button class="mc-acc" data-ir2="situacion" type="button"><span class="ic">🌡️</span><span class="tt">Situación actual</span><span class="ds">Extremos del día, resumen en lenguaje llano y observaciones</span></button><button class="mc-acc" data-ir2="analisis" type="button"><span class="ic">📈</span><span class="tt">Análisis y pronóstico</span><span class="ds">Cartas de superficie, el día por franjas, acumulado de lluvia y el último video</span></button><button class="mc-acc" data-ir2="avisos" type="button"><span class="ic">🗺️</span><span class="tt">Avisos · Mapa</span><span class="ds">El semáforo de riesgo por municipio y provincia</span></button><button class="mc-acc" data-ir2="satelite" type="button"><span class="ic">🛰️</span><span class="tt">Satélite</span><span class="ds">Imagen GOES del Caribe y Cuba, GeoColor e infrarrojo</span></button><button class="mc-acc" data-ir2="radares" type="button"><span class="ic">📡</span><span class="tt">Radares</span><span class="ds">Mosaico de radar animado y radares del área</span></button><button class="mc-acc" data-ir2="modelos" type="button"><span class="ic">🧭</span><span class="tt">Modelos</span><span class="ds">GFS, ECMWF e ICON dibujados: lluvia, viento, temperatura y presión</span></button><button class="mc-acc" data-ir2="ciclones" type="button"><span class="ic">🌀</span><span class="tt">Ciclones</span><span class="ds">Sistemas activos en el Atlántico según el NHC, en español claro</span></button><button class="mc-acc" data-ir2="clima" type="button"><span class="ic">📊</span><span class="tt">Clima</span><span class="ds">Normales 1991–2020, récords y hoy frente a lo normal</span></button><button class="mc-acc" data-ir2="salud" type="button"><span class="ic">❤️</span><span class="tt">Tiempo y salud</span><span class="ds">Asma, migraña, alergias, polen, artritis y calidad del aire</span></button><button class="mc-acc" data-ir2="agro" type="button"><span class="ic">🌾</span><span class="tt">Agrometeorología</span><span class="ds">Lluvia, humedad del suelo y recomendaciones para el campo</span></button><button class="mc-acc" data-ir2="estaciones" type="button"><span class="ic">🛬</span><span class="tt">Estaciones</span><span class="ds">Reportes METAR de los aeropuertos cubanos</span></button><button class="mc-acc" data-ir2="apps" type="button"><span class="ic">📱</span><span class="tt">Apps de LABMET</span><span class="ds">Las seis apps de LABMET para instalar gratis en tu teléfono</span></button><button class="mc-acc" data-ir2="creador" type="button"><span class="ic">👤</span><span class="tt">Sobre el creador</span><span class="ds">Quién hace esta página y para qué</span></button></section>
   </div>
   <section class="mc-sec" id="situacion" aria-label="Situación actual">
     <div class="mc-sec-cab"><h2>🌡️ Situación actual</h2><span class="mc-sec-fecha" id="sitFecha"></span></div>
@@ -622,7 +629,7 @@
     <h3 class="mc-sub">Lluvia estimada por satélite (GPM IMERG · NASA)</h3>
     <div class="mc-map2" id="mapImerg"></div>
     <div style="margin-top:7px"><div class="imergBar"></div><div class="imergTicks"><span>0,2</span><span>1</span><span>4</span><span>16+ mm/h</span></div></div>
-    <p class="mc-nota">Estimación satelital de la intensidad de la lluvia (NASA GPM IMERG), actualizada cada 30 minutos: llega donde no hay pluviómetros ni radares. Es una <b>estimación</b>, no una medición de estaciones, y el producto llega con varias horas de retraso. <span id="imergHora2"></span></p>
+    <p class="mc-nota"><b>Período: la última media hora.</b> Es la intensidad instantánea de la lluvia (mm/h): cuánto llovería en una hora si siguiera a ese ritmo. No es un acumulado de 3, 6, 12 ni 24 horas — el acumulado del día está en el mapa anterior, calculado con el modelo. Estimación satelital (NASA GPM IMERG), actualizada cada 30 minutos: llega donde no hay pluviómetros ni radares. Es una <b>estimación</b>, no una medición de estaciones, y el producto llega con varias horas de retraso. <span id="imergHora2"></span></p>
     <h3 class="mc-sub">Último video de LABMET</h3>
 <a class="ytCard" href="https://www.youtube.com/@labmet" target="_blank" rel="noopener"><span class="ytIco">▶</span><span><b>LABMET en YouTube</b><br><small>@labmet · Ver el canal y sus videos</small></span><span class="ytFlecha">›</span></a>
   <div class="videoWrap"><iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=UU0wTuI-BDkfWldVw5AS2r7Q" title="Último video de LABMET en YouTube" loading="lazy" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; web-share" allowfullscreen></iframe></div>
@@ -871,6 +878,23 @@
     <div class="mc-tabla-wrap"><table class="mc-tabla" id="estTabla"><thead><tr><th>Estación</th><th>Reporte</th><th>Temp.</th><th>Rocío</th><th>Sensación*</th><th>Viento</th><th>Visibilidad</th><th>Presión</th><th>Tiempo</th></tr></thead><tbody><tr><td colspan="9">Cargando reportes…</td></tr></tbody></table></div>
     <p class="mc-nota">Fuentes: IEM (Universidad de Iowa) y GIS de observaciones del NWS, que difunden los METAR cubanos de la red OMM. Solo se muestran reportes de las últimas 3 horas. *Sensación = índice de calor calculado cuando hace calor y hay humedad; si no, coincide con la temperatura. Viento en km/h.</p>
   </section>
+  <section class="mc-sec" id="apps" aria-label="Apps de LABMET">
+    <div class="mc-sec-cab"><h2>📱 Apps de LABMET</h2><span class="mc-sec-fecha">Se instalan gratis, sin tienda</span></div>
+    <p>Todas las aplicaciones de LABMET en un solo lugar. Son <b>apps web</b>: se abren en el navegador y se pueden <b>instalar en la pantalla de inicio</b> del teléfono, como cualquier app, sin pasar por ninguna tienda y sin ocupar casi espacio.</p>
+    <div class="appsGrid">
+      <div class="appCard"><span class="apIco">🇨🇺</span><b>Meteorología Cuba</b><p>Este mismo portal: avisos por municipio, modelos, ciclones, salud y agrometeorología para Cuba.</p><button class="appBtn" id="btnInstalarMC" type="button">⬇ Instalar esta app</button></div>
+      <div class="appCard"><span class="apIco">🗺️</span><b>Avisos Cuba</b><p>El semáforo de riesgo por municipio y provincia: 10 peligros para hoy, mañana y pasado mañana.</p><a class="appBtn" href="https://www.labmetweather.com" target="_blank" rel="noopener">Abrir la app ↗</a></div>
+      <div class="appCard"><span class="apIco">🇻🇪</span><b>Avisos Venezuela</b><p>El mismo sistema de avisos, para los 337 municipios de Venezuela.</p><a class="appBtn" href="https://venezuela.labmetweather.com" target="_blank" rel="noopener">Abrir la app ↗</a></div>
+      <div class="appCard"><span class="apIco">❤️</span><b>TiempoSalud</b><p>El tiempo y tu salud: migraña, asma, alergias, polen, artritis y calidad del aire, ciudad por ciudad.</p><a class="appBtn" href="https://tiemposalud.labmetweather.com" target="_blank" rel="noopener">Abrir la app ↗</a></div>
+      <div class="appCard"><span class="apIco">🌙</span><b>Calendario Lunar</b><p>Las fases de la Luna y los días favorables para el campo, la belleza y la salud.</p><a class="appBtn" href="https://lunar.labmetweather.com" target="_blank" rel="noopener">Abrir la app ↗</a></div>
+      <div class="appCard"><span class="apIco">🎬</span><b>LABMET Clips</b><p>Crea clips verticales del tiempo, listos para publicar en tus redes.</p><a class="appBtn" href="https://clips.labmetweather.com" target="_blank" rel="noopener">Abrir la app ↗</a></div>
+    </div>
+    <div class="appsHow" id="appsHow"><b>¿Cómo se instala una app de LABMET?</b><br>
+    📱 <b>En Android (Chrome):</b> abre la app, toca el menú ⋮ y elige «Instalar app» o «Añadir a pantalla de inicio».<br>
+    🍎 <b>En iPhone (Safari):</b> abre la app, toca Compartir y elige «Añadir a inicio».<br>
+    Queda un icono en tu pantalla y se abre a pantalla completa, como una app normal. No pide cuenta ni contraseña.</div>
+  </section>
+
   <section class="mc-sec" id="creador" aria-label="Sobre el creador">
     <div class="mc-sec-cab"><h2>👤 Sobre el creador</h2></div>
     <div class="creador-flex">
@@ -3780,7 +3804,7 @@ setTimeout(function(){ clearInterval(esperaMotor); }, 120000);
 /* ---------- navegación principal v3: una vista a la vez (por toque) ---------- */
 var initHecho = {};
 var vistaActual = "inicio";
-var VISTAS_MC = ["inicio","situacion","analisis","avisos","satelite","radares","modelos","ciclones","clima","salud","agro","estaciones","creador"];
+var VISTAS_MC = ["inicio","situacion","analisis","avisos","satelite","radares","modelos","ciclones","clima","salud","agro","estaciones","apps","creador"];
 function marcarNav(n){
   document.querySelectorAll("#mcNav a").forEach(function(a){ a.classList.toggle("act", a.dataset.nav === n); });
 }
@@ -3859,6 +3883,13 @@ function pintarAcu(){
     onEachFeature: function(f, l){ var mm = f.properties.mm; l.bindTooltip(acuNombre(f.properties.mi) + (mm == null ? " · sin datos" : " · " + (Math.round(mm * 10) / 10) + " mm en 24 h"), { sticky: true }); }
   }).addTo(acuMapa);
 }
+var mcPrompt = null;
+window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); mcPrompt = e; });
+var bInstMC = document.getElementById("btnInstalarMC");
+if (bInstMC) bInstMC.addEventListener("click", function(){
+  if (mcPrompt){ mcPrompt.prompt(); mcPrompt.userChoice.then(function(){ mcPrompt = null; }); }
+  else { var h = document.getElementById("appsHow"); if (h) h.scrollIntoView({ behavior: "smooth", block: "center" }); }
+});
 var bcContacto = document.getElementById("btnContacto"), fcContacto = document.getElementById("formContacto");
 if (bcContacto && fcContacto) bcContacto.addEventListener("click", function(){ fcContacto.classList.toggle("oculto"); });
 var imergMapa = null;
@@ -6128,7 +6159,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v29",
+  version: "v30",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
