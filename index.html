@@ -206,7 +206,14 @@
   .anaTabs button { border:1.5px solid #c6d6e0; background:#fff; color:#33475b; border-radius:999px; padding:5px 13px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
   .anaTabs button.act { background:#0f4c81; border-color:#0f4c81; color:#fff; }
   .anaImgBox { position:relative; border-radius:8px; overflow:hidden; background:#0d2f42; }
-  .anaWpcImg { width:100%; height:auto; display:block; border:1px solid #d9e4ea; border-radius:8px; background:#fff; }
+  .anaPropioMap { height:340px; border-radius:8px; overflow:hidden; background:#dcebf5; }
+  .ana-lbl-iso { transform:translate(-50%,-50%); background:rgba(255,255,255,.92); border:1px solid #7d99ae; border-radius:6px; padding:0 5px; font-size:10.5px; font-weight:800; color:#0d3a56; white-space:nowrap; line-height:1.55; }
+  .ana-centro { transform:translate(-50%,-50%); text-align:center; line-height:1.05; white-space:nowrap; }
+  .ana-centro b { display:block; font-size:22px; font-weight:900; }
+  .ana-centro span { display:block; font-size:11.5px; font-weight:800; }
+  .ana-centro.b { color:#b3202c; text-shadow:0 1px 3px rgba(255,255,255,.95),0 0 7px rgba(255,255,255,.9); }
+  .ana-centro.a { color:#0f4c81; text-shadow:0 1px 3px rgba(255,255,255,.95),0 0 7px rgba(255,255,255,.9); }
+  .ana-persp { font-size:14px; line-height:1.6; color:#24455c; }
   .anaImgBox img { display:block; width:100%; }
   .anaImgBox .anaChartImg { position:absolute; inset:0; height:100%; }
   .anaWrap { position:relative; border-radius:8px; overflow:hidden; line-height:0; }
@@ -413,6 +420,21 @@
   .mod-mun b { display:block; font-size:14.5px; font-weight:800; color:#fff; }
   .mod-wrap { position:relative; }
   .mod-pill { position:absolute; top:8px; left:50%; transform:translateX(-50%); background:rgba(6,40,63,.88); color:#fff; padding:3px 14px; border-radius:999px; font-size:12.5px; font-weight:700; z-index:800; pointer-events:none; white-space:nowrap; box-shadow:0 1px 5px rgba(0,0,0,.35); }
+  /* v12 · etiquetas del mapa de Ciclones (zonas vigiladas y sistemas) */
+  .cic-lbl-zona { transform:translate(-50%,-50%); text-align:center; line-height:1.15; white-space:nowrap;
+    color:#5b3400; text-shadow:0 1px 2px rgba(255,255,255,.95),0 0 6px rgba(255,255,255,.85); }
+  .cic-lbl-zona b { display:block; font-size:14px; font-weight:800; }
+  .cic-lbl-zona span { display:block; font-size:10.5px; font-weight:700; }
+  .cic-lbl-tor { transform:translate(-50%,-135%); text-align:center; line-height:1.1; white-space:nowrap;
+    color:#7c1420; text-shadow:0 1px 3px rgba(255,255,255,.95),0 0 7px rgba(255,255,255,.85); }
+  .cic-lbl-tor b { display:block; font-size:13.5px; font-weight:800; }
+  .cic-lbl-tor span { display:block; font-size:10.5px; font-weight:700; }
+  /* v12 · bloque de tiempo severo (HRRR Caribe) */
+  .sev-fig { margin:14px 0; }
+  .sev-fig img { width:100%; height:auto; display:block; border:1px solid #d9e4ea; border-radius:10px; background:#fff; }
+  .sev-fig figcaption { font-size:13.5px; line-height:1.55; color:#24455c; margin-top:7px; }
+  .sev-fig figcaption b { color:#0a2f47; }
+  .sev-exp { background:#fdf3e0; border:1px solid #ecd9a8; border-radius:8px; padding:7px 11px; font-size:13px; line-height:1.5; color:#6b5510; }
   .mod-panel { position:absolute; left:8px; bottom:8px; background:rgba(6,40,63,.88); color:#fff; padding:4px 12px; border-radius:8px; font-size:12.5px; font-weight:700; z-index:800; pointer-events:none; box-shadow:0 1px 5px rgba(0,0,0,.35); }
   .mod-canvas { position:absolute; inset:0; pointer-events:none; }
   input[type=range].mc-range { flex:1 1 180px; accent-color:#0d4066; }
@@ -630,12 +652,14 @@
     <p class="videoNota" style="margin-left:0">Mapa a color con los frentes, los centros de presión y las áreas de lluvia del Centro de Predicción Meteorológica (WPC/NOAA) sobre imagen de satélite, con los colores oficiales: frente frío en azul, cálido en rojo, estacionario en rojo y azul y vaguada en naranja. Es la misma fuente del Visor LABMET. El enlace abre la carta oficial de la TAFB (NHC) de ese día, que incluye las ondas tropicales del Caribe. <a id="anaFull" href="https://www.nhc.noaa.gov/tafb_latest/USA_latest.gif" target="_blank" rel="noopener">Ver la carta completa ↗</a></p>
   </div>
 
-      <h2 class="sec">La carta oficial completa del WPC, con las estaciones</h2>
+      <h2 class="sec">Análisis propio a partir del modelo</h2>
   <div class="panel">
-    <p style="margin-top:2px">Es el <b>análisis de superficie observado</b> del Centro de Predicción Meteorológica (WPC) para Norteamérica y el Caribe: los mismos frentes, isobaras y centros de presión de la carta interactiva del WPC, junto a las <b>tramas de estación</b> — también las de Cuba y su entorno — que los analistas acaban de dibujar. Se renueva cada 3 horas; la hora de validez va impresa en la esquina inferior izquierda de la carta. (La superposición directa sobre nuestro mapa no es posible: los servicios GIS del NWS solo publican la carta de frentes <i>pronosticada</i> —la de arriba—, no el análisis observado en capas; por eso aquí va la carta oficial completa, tal como la publica el WPC.)</p>
-    <img class="anaWpcImg" id="anaWpcImg" src="https://www.wpc.ncep.noaa.gov/sfc/90fwbg.gif" alt="Análisis de superficie del WPC para Norteamérica y el Caribe: frentes, isobaras, centros de presión y tramas de estación" loading="lazy" onerror="this.style.display='none';var f=document.getElementById('anaWpcFallo');if(f)f.hidden=false">
-    <p class="videoNota" id="anaWpcFallo" style="margin-left:0" hidden>La carta del WPC no pudo cargarse ahora mismo; puede verla en la <a href="https://www.wpc.ncep.noaa.gov/html/sfc2.shtml" target="_blank" rel="noopener">página oficial del análisis ↗</a>.</p>
-    <p class="videoNota" style="margin-left:0">Análisis de superficie: WPC/NOAA — producto del gobierno federal de EE.&nbsp;UU., de uso libre (dominio público). <a href="https://www.wpc.ncep.noaa.gov/html/sfc2.shtml" target="_blank" rel="noopener">Página oficial del análisis, con todos los horarios y sectores ↗</a></p>
+    <p style="margin-top:2px">Nuestro <b>propio análisis de superficie</b>, dibujado en esta página desde la rejilla del modelo: <b>isobaras cada 4 hPa</b> con su valor, los <b>centros de alta (A) y de baja (B)</b> que el campo de presión define, con su presión central, y las <b>barbas de viento</b> en superficie. No es el análisis oficial de ningún centro: es la lectura directa del campo del modelo, sin frentes dibujados a mano.</p>
+    <div id="anaPropioWrap">
+      <div class="anaPropioMap" id="mapAnaPropio"></div>
+      <p class="ana-persp" id="anaPerspectiva">El análisis se calcula al abrir esta pestaña…</p>
+      <p class="videoNota" style="margin-left:0" id="anaPropioPie">Análisis a partir de los modelos numéricos (GFS) · Elaboración: LABMET</p>
+    </div>
   </div>
       <h2 class="sec">Radares del área</h2>
   <div class="panel">
@@ -704,11 +728,18 @@
     <div class="mod-wrap"><div class="mc-map2" id="mapMod"></div><div class="mod-pill" id="modPill">—</div><div class="mod-panel" id="modPanel">—</div></div>
     <div id="modLeyenda"></div>
     <p class="mc-nota">Datos: salidas de los modelos GFS (NOAA), ECMWF e ICON (DWD). Son salidas de modelo sin corregir: compárelas entre sí y con los <a href="#avisos">avisos</a>, que ya llevan el criterio del meteorólogo. Lluvia = mm de la hora; viento en km/h; presión en hPa al nivel del mar.</p>
+    <h3 class="mc-sub">🌩️ Tiempo severo — HRRR Caribe (experimental)</h3>
+    <p>El modelo de tormentas <b>HRRR del Caribe</b> (laboratorio GSL de la NOAA; rejilla de unos 3 km que cubre la Florida, Cuba y las Bahamas) corre una vez al día y dibuja, hora a hora, los campos que mejor anticipan el <b>tiempo severo</b>: dónde se forman las celdas, qué rachas pueden traer y cuánto combustible (CAPE) tienen. Elija la hora de pronóstico con los botones: todos los mapas son de la misma corrida y de la misma hora válida.</p>
+    <p class="sev-exp">⚠️ <b>Producto experimental</b> — el propio laboratorio lo ofrece «solo para investigación, no para operaciones» (<i>for research purposes only — not intended for operational use</i>) y sin garantía de continuidad. Es un <b>apoyo al análisis</b>, nunca la base de los avisos de esta página.</p>
+    <div class="mc-ctl"><button id="sevMenos" type="button">◀ −3 h</button><span class="mc-hora" id="sevEstado">Sin cargar: se activa al abrir esta sección.</span><button id="sevMas" type="button">+3 h ▶</button></div>
+    <div id="sevFigs"></div>
+    <p class="mc-nota">La <b>amenaza de rayos</b> y el <b>tamaño del granizo (HAILCAST)</b> también los calcula este modelo, pero el laboratorio no publica esos dos mapas para el dominio del Caribe — por eso no aparecen aquí —. Las imágenes se generan en el servidor del laboratorio al pedirlas: la primera carga de cada hora puede tardar unos segundos. Fuente: HRRR_CAR, Global Systems Laboratory (NOAA). <a href="https://rapidrefresh.noaa.gov/hrrr/CARIBBEAN/Welcome.cgi?dsKey=hrrr_car_jet" target="_blank" rel="noopener">Página del modelo ↗</a></p>
   </section>
 
-    <section class="mc-card" id="mcCiclonesCard"><h2>🌀 Ciclones tropicales</h2><div id="mcCiclones"><p class="mc-nota">Consultando el parte del Centro Nacional de Huracanes (NHC)…</p></div><p class="mc-nota">Fuente: NHC / NOAA. <a href="https://www.nhc.noaa.gov/gtwo.php?basin=atlc" target="_blank" rel="noopener">Perspectiva tropical del Atlántico ↗</a> · <a href="https://www.nhc.noaa.gov/" target="_blank" rel="noopener">nhc.noaa.gov ↗</a></p></section>
   <section class="mc-sec" id="ciclones" aria-label="Ciclones tropicales">
     <div class="mc-sec-cab"><h2>🌀 Ciclones tropicales</h2><span class="mc-sec-fecha">NHC · NOAA</span></div>
+    <p>El Atlántico completo, del Caribe a la costa de África, con los sistemas activos y las zonas vigiladas de la perspectiva a 7 días del Centro Nacional de Huracanes (NHC): toque un sistema o una zona para ver su detalle.</p>
+    <div class="mod-wrap"><div class="mc-map2" id="mapCic"></div><div class="mod-pill" id="cicPill">Consultando el parte del NHC…</div></div>
     <div id="cicSec"><p class="mc-nota">Consultando el parte del Centro Nacional de Huracanes (NHC)…</p></div>
     <p class="mc-nota">Fuentes: NHC / NOAA — <a href="https://www.nhc.noaa.gov/gtwo.php?basin=atlc" target="_blank" rel="noopener">Perspectiva tropical del Atlántico ↗</a> · <a href="https://www.nhc.noaa.gov/" target="_blank" rel="noopener">nhc.noaa.gov ↗</a>. La temporada ciclónica del Atlántico va del 1 de junio al 30 de noviembre. El nivel de peligro «Ciclón» por municipio está en el <a href="#avisos">mapa de avisos</a>. Ante cualquier amenaza, siga los avisos oficiales del INSMET y la Defensa Civil.</p>
   </section>
@@ -3348,26 +3379,20 @@ cargar();
            Math.abs(lon).toFixed(1).replace(".", ",") + "°" + (lon <= 0 ? "O" : "E");
   }
   function pintarCiclones(){
-    var el = document.getElementById("mcCiclones");
-    if (!el || ciclonesListo) return;
+    // v12: la tarjeta de texto de Ciclones vive UNA sola vez, dentro de la
+    // vista (#cicSec, la pinta initCiclones del bloque v3). La antigua
+    // tarjeta del portal (mcCiclonesCard) se retiró del HTML porque
+    // repetía el mismo «Sin ciclones tropicales activos», y el estado
+    // vacío vive ahora en el mapa del Atlántico (cicPill). Esta función
+    // conserva solo su papel de siempre en la sincronía: marcar
+    // ciclonesListo cuando el parte GIS ya resolvió (con sistemas, sin
+    // sistemas o con fallo), con las mismas guardas de la v11.
+    if (ciclonesListo) return;
     if (typeof ciclones === "undefined") return;
     if (ciclones === null){
-      if (typeof resultados === "undefined" || !resultados) return; // aún cargando
+      if (typeof resultados === "undefined" || !resultados) return;
       var appEl = document.getElementById("app");
-      if (!appEl || appEl.classList.contains("oculto")) return; // v5: el motor aún no terminó; ciclones sigue en su valor inicial
-      el.innerHTML = '<p class="mc-nota">No se pudo obtener el parte de ciclones del NHC en este momento. Consulte la tarjeta de cada municipio para el nivel de ciclón calculado y la <a href="https://www.nhc.noaa.gov/" target="_blank" rel="noopener">página del NHC ↗</a>.</p>';
-      ciclonesListo = true; return;
-    }
-    if (!ciclones.length){
-      el.innerHTML = '<p class="mc-cic-ok">✅ <b>Sin ciclones tropicales activos</b> en la cuenca del Atlántico en este momento.</p>' +
-        '<p>Cuando el Centro Nacional de Huracanes (NHC) tenga un sistema activo que afecte a Cuba, aquí aparecerá su viento máximo, su posición y la explicación en español claro, y el mapa activará el peligro «Ciclón» por municipios.</p>';
-    } else {
-      el.innerHTML = ciclones.map(function(s){
-        var kmh = Math.round(s.kt * 1.852);
-        var pos = (s.pts && s.pts.length) ? fmtPos(s.pts[0].lat, s.pts[0].lon) : "—";
-        return '<div class="mc-cic">🌀 <b>' + s.name + '</b> — viento máximo de <b>' + kmh + ' km/h</b> · posición ' + pos +
-               '<br>Siga la evolución en el mapa de avisos: el peligro «Ciclón» se calcula por municipio según la distancia al centro.</div>';
-      }).join("");
+      if (!appEl || appEl.classList.contains("oculto")) return;
     }
     ciclonesListo = true;
   }
@@ -3470,7 +3495,7 @@ cargar();
       var t = b.dataset.ir;
       if (t === "mapa"){ var m = document.getElementById("map"); if (m) m.scrollIntoView({ behavior: "smooth" }); }
       if (t === "busca"){ var s = document.getElementById("mcBusca"); if (s){ s.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(function(){ s.focus(); }, 450); } }
-      if (t === "ciclones"){ var c = document.getElementById("mcCiclonesCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "center" }); }
+      if (t === "ciclones"){ var c = document.getElementById("ciclones"); if (c) c.scrollIntoView({ behavior: "smooth", block: "center" }); }
       if (t === "capas"){
         var m2 = document.getElementById("map"); if (m2) m2.scrollIntoView({ behavior: "smooth" });
         setTimeout(function(){ var bc = document.getElementById("btnCapas"); if (bc) bc.click(); }, 550);
@@ -3563,7 +3588,7 @@ function initSeccion(n){
 function elsVista(n){
   if (n === "inicio") return [$("mcInicio")];
   if (n === "avisos") return [$("avisos"), document.querySelector("section.hero"), $("adTop"), document.querySelector("main.sheet")];
-  if (n === "ciclones") return [$("mcCiclonesCard"), $("ciclones")];
+  if (n === "ciclones") return [$("ciclones")];
   var e = $(n); return e ? [e] : [];
 }
 function ubicarFicha(){
@@ -3890,8 +3915,18 @@ function initClimaMapas(){
    cada frase solo se escribe si su patrón está en el producto; si no se
    extrae nada, el resumen lo dice tal cual. Se carga al abrir la sección
    y se refresca si pasaron más de 20 minutos; no toca el servicio de
-   datos de pronóstico. */
-var nhcInfo = { ok: false, frases: 0, twd: null, two: null, resumen: "" }, nhcCargando = false, nhcUltimo = 0;
+   datos de pronóstico.
+   v12 (petición de Jorge, 30-oct): el resumen CAMBIA DE PRIORIDAD — si no
+   hay un ciclón cerca de Cuba, no hay que aclarar que «no se espera
+   formación». El resumen abre con las ZONAS VIGILADAS de la TWO (solo si
+   las hay) y con el ELEMENTO MÁS SIGNIFICATIVO para la zona según la
+   discusión; la frase de no-formación desaparece del resumen en semanas
+   tranquilas (esa información vive en la sección Ciclones, en el mapa).
+   El apunte se guarda también en texto plano (nhcApuntePlano / nhcInfo
+   .apunte) porque la perspectiva del análisis propio de superficie lo
+   reutiliza como contexto. */
+var nhcInfo = { ok: false, frases: 0, twd: null, two: null, resumen: "", apunte: "" }, nhcCargando = false, nhcUltimo = 0;
+var nhcApuntePlano = "";
 function nhcEsc(s){ return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
 function nhcHoraCuba(iso){
   try { return new Date(iso).toLocaleString("es", { timeZone: "America/Havana", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
@@ -3961,7 +3996,10 @@ function nhcResumen(twdT, twoT){
   var frases = [];
   if (two){
     if (/formation is not expected during the next 7 days/i.test(two)){
-      frases.push("El NHC <b>no espera formación de ciclones tropicales</b> en los próximos 7 días.");
+      // v12: la frase de no-formación YA NO entra en el resumen (petición
+      // de Jorge, 30-oct): si no hay un ciclón cerca de Cuba, no hay que
+      // aclarar que no se espera formación; el resumen va directo a lo
+      // significativo para la zona. Esa información vive en Ciclones.
     } else {
       var zonas = [];
       two.split(/\s(?=\d+\.\s)/).forEach(function(ch){
@@ -4003,6 +4041,7 @@ function nhcResumen(twdT, twoT){
       return true;
     });
   }
+  nhcApuntePlano = apunte.replace(/<[^>]+>/g, "");
   if (apunte) frases.push(apunte);
   if (!frases.length) return "Sin sistemas de interés para Cuba en esta emisión: el análisis del NHC no destaca nada que afecte a la isla ni a sus mares cercanos.";
   return frases.join(" ");
@@ -4026,7 +4065,7 @@ async function initNHC(){
   try {
     var res = await Promise.all([nhcProducto("TWD"), nhcProducto("TWO")]);
     var resumen = nhcResumen(res[0].texto, res[1].texto);
-    nhcInfo = { ok: true, frases: (resumen.match(/\.(?=\s|$)/g) || []).length, twd: res[0].t, two: res[1].t, resumen: resumen };
+    nhcInfo = { ok: true, frases: (resumen.match(/\.(?=\s|$)/g) || []).length, twd: res[0].t, two: res[1].t, resumen: resumen, apunte: nhcApuntePlano };
     nhcUltimo = Date.now();
     el.innerHTML = "<h3>🌀 Perspectiva tropical — NHC</h3>" +
       '<p class="nhc-resumen">' + resumen + "</p>" +
@@ -4721,6 +4760,7 @@ function initModelos(){
     if (modS.diag.overlay === "barbas" && modS.lastUV && modS.lastData) modBarbasDraw(modS.lastUV, modS.lastData, modS.lastHIdx);
   });
   modRender();
+  initSevero();
 }
 document.querySelectorAll("#modModelos button").forEach(function(b){
   b.addEventListener("click", function(){
@@ -4852,6 +4892,7 @@ function cicTarjeta(cs, mot){
   return h + "</div>";
 }
 function initCiclones(){
+  cicMapaInit();
   if (cicListo) return;
   cuandoMotor(async function(){
     if (cicListo) return; cicListo = true;
@@ -4874,6 +4915,503 @@ function initCiclones(){
     mot.forEach(function(s){ if (!usados[normT(s.name)]) html += cicTarjeta(null, s); });
     el.innerHTML = html;
   });
+}
+
+
+/* ---------- CICLONES · MAPA DEL ATLÁNTICO (v12) ----------
+   Jorge pidió (30-oct) que la sección Ciclones abra con un mapa
+   interactivo de TODO el Atlántico alimentado del NHC, y que el texto
+   «Sin ciclones tropicales activos» salga UNA sola vez. Las capas son
+   las reales del MapServer tropical del NHC (el mismo servicio que ya
+   alimenta la tarjeta de texto): 3 = regiones potenciales de desarrollo
+   a 7 días de la TWO (prob2day/prob7day), 5 = puntos de pronóstico
+   (la posición actual es tau=0), 6 = trayectorias y 7 = conos. El
+   filtro de cuenca: la capa 5/6/7 se pide con basin='AL' y la capa 3 se
+   filtra fuera el Pacífico por su etiqueta (basin viene como nombre
+   completo, p. ej. «Pacific»). Sin sistemas ni zonas, la píldora del
+   mapa muestra la cuenca en calma: el estado vacío vive en el mapa. */
+const CIC_GIS = "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather_summary/MapServer";
+const cicS = { init: false, map: null, diag: { tormentas: 0, conos: 0, trayectorias: 0, zonas: 0, vacio: null, pill: "", tormentasNombres: [], zonasPct: [] } };
+async function cicGisJSON(capa, where, campos){
+  const u = CIC_GIS + "/" + capa + "/query?where=" + encodeURIComponent(where) + "&outFields=" + campos + "&returnGeometry=true&f=geojson";
+  const r = await fetch(u);
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return await r.json();
+}
+function cicColorZona(p){
+  const r7 = String((p && (p.risk7day || p.risk2day)) || "").toLowerCase();
+  if (r7.indexOf("high") >= 0) return "#d73027";
+  if (r7.indexOf("med") >= 0) return "#ef8a3c";
+  return "#e3b505";
+}
+async function cicMapaInit(){
+  const el = document.getElementById("mapCic");
+  if (!el || typeof L === "undefined") return;
+  if (cicS.map){ cicS.map.invalidateSize(); return; }
+  if (cicS.init) return;
+  cicS.init = true;
+  cicS.map = L.map("mapCic", { scrollWheelZoom: false });
+  cicS.map.fitBounds([[3.5, -103], [46, -8]]);
+  L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 12, attribution: "© Esri · Sistemas y zonas: NHC / NOAA" }).addTo(cicS.map);
+  const pill = document.getElementById("cicPill");
+  try {
+    const res = await Promise.all([
+      cicGisJSON(3, "1=1", "basin,prob2day,risk2day,prob7day,risk7day"),
+      cicGisJSON(5, "basin='AL'", "stormname,stormtype,maxwind,mslp,tau,lat,lon"),
+      cicGisJSON(6, "basin='AL'", "stormname,stormtype"),
+      cicGisJSON(7, "basin='AL'", "stormname")
+    ]);
+    const zonas = ((res[0] && res[0].features) || []).filter(f => {
+      const b = String((f.properties && f.properties.basin) || "");
+      return !/pacific/i.test(b) && !!f.geometry;
+    });
+    const pts = (res[1] && res[1].features) || [];
+    const tracks = (res[2] && res[2].features) || [];
+    const cones = (res[3] && res[3].features) || [];
+    zonas.forEach(f => {
+      const col = cicColorZona(f.properties);
+      const pol = L.geoJSON(f, { style: { color: col, weight: 1.6, fillColor: col, fillOpacity: 0.22 } }).addTo(cicS.map);
+      const p = f.properties || {};
+      const cen = pol.getBounds().getCenter();
+      const ic = L.divIcon({ className: "cicLblWrap", html: '<div class="cic-lbl-zona"><b>' + (p.prob7day || "—") + '</b><span>formación en 7 días</span></div>', iconSize: [0, 0] });
+      L.marker(cen, { icon: ic, interactive: false }).addTo(cicS.map);
+      const txt = "<b>Zona vigilada por el NHC</b><br>Probabilidad de formación: " + (p.prob2day || "—") + " en 48 horas · " + (p.prob7day || "—") + " en 7 días.";
+      if (pol.eachLayer) pol.eachLayer(l => { if (l.bindPopup) l.bindPopup(txt); });
+      else if (pol.bindPopup) pol.bindPopup(txt);
+    });
+    cones.forEach(f => { L.geoJSON(f, { style: { color: "#5b7180", weight: 1.2, fillColor: "#ffffff", fillOpacity: 0.35 } }).addTo(cicS.map); });
+    tracks.forEach(f => { L.geoJSON(f, { style: { color: "#7c1420", weight: 2.2 } }).addTo(cicS.map); });
+    const actuales = pts.filter(f => f.properties && +f.properties.tau === 0);
+    actuales.forEach(f => {
+      const p = f.properties, g = f.geometry;
+      const ll = g && g.coordinates ? [g.coordinates[1], g.coordinates[0]] : [p.lat, p.lon];
+      const kmh = Math.round((+p.maxwind || 0) * 1.852);
+      L.circleMarker(ll, { radius: 7, color: "#7c1420", weight: 2, fillColor: "#e4572e", fillOpacity: 0.9 }).addTo(cicS.map)
+        .bindPopup("<b>" + p.stormname + "</b> (" + p.stormtype + ")<br>Viento máximo: " + kmh + " km/h · Presión central: " + (p.mslp || "—") + " hPa");
+      const ic = L.divIcon({ className: "cicLblWrap", html: '<div class="cic-lbl-tor"><b>🌀 ' + p.stormname + '</b><span>' + kmh + ' km/h</span></div>', iconSize: [0, 0] });
+      L.marker(ll, { icon: ic, interactive: false }).addTo(cicS.map);
+    });
+    cicS.diag = { tormentas: actuales.length, conos: cones.length, trayectorias: tracks.length, zonas: zonas.length,
+      vacio: (!actuales.length && !zonas.length), pill: "",
+      tormentasNombres: actuales.map(f => f.properties.stormname),
+      zonasPct: zonas.map(f => (f.properties && f.properties.prob7day) || "") };
+    if (actuales.length) cicS.diag.pill = "🌀 " + actuales.length + (actuales.length === 1 ? " sistema activo" : " sistemas activos") + (zonas.length ? " · " + zonas.length + (zonas.length === 1 ? " zona vigilada" : " zonas vigiladas") : "");
+    else if (zonas.length) cicS.diag.pill = "Sin ciclones activos · " + zonas.length + (zonas.length === 1 ? " zona vigilada" : " zonas vigiladas") + " a 7 días";
+    else cicS.diag.pill = "Sin sistemas activos · No se espera desarrollo ciclónico en los próximos 7 días";
+    if (pill) pill.textContent = cicS.diag.pill;
+  } catch(e){
+    cicS.diag = { tormentas: 0, conos: 0, trayectorias: 0, zonas: 0, vacio: null, pill: "", tormentasNombres: [], zonasPct: [], error: String(e && e.message || e) };
+    if (pill) pill.textContent = "No se pudo cargar el mapa del NHC en este momento";
+  }
+}
+
+/* ---------- ANÁLISIS PROPIO DE SUPERFICIE (v12) ----------
+   Jorge pidió (30-oct) eliminar la carta completa del WPC y hacer
+   NUESTRO análisis: «hacer el análisis del modelo, hacer la perspectiva
+   y mostrar un mapa hecho por ti en la página con los valores». El mapa
+   se calcula en el cliente desde la rejilla de Modelos (grupo de
+   presión + viento u/v), SIN llamadas nuevas: si Modelos ya cargó el
+   día, la caché persistente de modFetchGroup lo sirve; si no, se carga
+   con la misma disciplina (caché + reintentos). Isobaras: marching
+   squares sobre la rejilla 24×12 cada 4 hPa, segmentos unidos en
+   polilíneas y un rótulo por nivel. Centros: extremo estricto en
+   ventana 5×5 con profundidad ≥ 0,4 hPa contra el anillo a distancia 2
+   (en un campo suave, el vecino inmediato casi no se separa). La
+   perspectiva se genera de ese análisis + el apunte del NHC. Nada de
+   frentes dibujados: el campo manda. */
+const anaS = { init: false, cargando: false, map: null, grupo: null, cv: null, uv: null, W: null, hIdx: 0,
+  diag: { niveles: [], polilineas: 0, centros: [], pCuba: null, vientoMax: null, barbas: 0, perspectiva: "", modelo: "" } };
+function anaGridVals(data, hIdx){
+  const V = new Float32Array(MODNX * MODNY);
+  for (let j = 0; j < V.length; j++){
+    let v = data[j] ? data[j][hIdx] : null;
+    if (v === null || v === undefined || isNaN(v)){
+      const l = j % MODNX > 0 && data[j - 1] ? data[j - 1][hIdx] : null;
+      const t = j >= MODNX && data[j - MODNX] ? data[j - MODNX][hIdx] : null;
+      v = (l !== null && l !== undefined) ? l : ((t !== null && t !== undefined) ? t : 0);
+    }
+    V[j] = v;
+  }
+  return V;
+}
+function anaContornos(V, nivel){
+  const val = (r, c) => V[r * MODNX + c];
+  const interp = (a, b) => (nivel - a) / (b - a);
+  const segs = [];
+  for (let r = 0; r < MODNY - 1; r++) for (let c = 0; c < MODNX - 1; c++){
+    const tl = val(r, c), tr = val(r, c + 1), br = val(r + 1, c + 1), bl = val(r + 1, c);
+    const idx = (tl > nivel ? 8 : 0) | (tr > nivel ? 4 : 0) | (br > nivel ? 2 : 0) | (bl > nivel ? 1 : 0);
+    if (idx === 0 || idx === 15) continue;
+    const E = { T: [c + interp(tl, tr), r], R: [c + 1, r + interp(tr, br)],
+                B: [c + interp(bl, br), r + 1], L: [c, r + interp(tl, bl)] };
+    const tabla = { 1: [["L", "B"]], 2: [["B", "R"]], 3: [["L", "R"]], 4: [["T", "R"]],
+      5: [["T", "L"], ["B", "R"]], 6: [["T", "B"]], 7: [["T", "L"]], 8: [["T", "L"]],
+      9: [["T", "B"]], 10: [["T", "R"], ["L", "B"]], 11: [["T", "R"]], 12: [["L", "R"]],
+      13: [["B", "R"]], 14: [["L", "B"]] };
+    const pares = tabla[idx]; if (!pares) continue;
+    for (let k = 0; k < pares.length; k++) segs.push([E[pares[k][0]], E[pares[k][1]]]);
+  }
+  const clave = p => Math.round(p[0] * 1000) + "," + Math.round(p[1] * 1000);
+  const porPunto = {};
+  segs.forEach((s, i) => { [s[0], s[1]].forEach(p => { const k = clave(p); (porPunto[k] = porPunto[k] || []).push(i); }); });
+  const usado = new Array(segs.length).fill(false), lineas = [];
+  const otroExtremo = (si, p) => clave(segs[si][0]) === clave(p) ? segs[si][1] : segs[si][0];
+  for (let i = 0; i < segs.length; i++){
+    if (usado[i]) continue;
+    usado[i] = true;
+    const linea = [segs[i][0], segs[i][1]];
+    let crecer = true;
+    while (crecer){
+      crecer = false;
+      const cola = linea[linea.length - 1];
+      const candC = porPunto[clave(cola)] || [];
+      for (let a = 0; a < candC.length; a++){
+        if (usado[candC[a]]) continue;
+        usado[candC[a]] = true; linea.push(otroExtremo(candC[a], cola)); crecer = true; break;
+      }
+      if (crecer) continue;
+      const cab = linea[0];
+      if (clave(cab) === clave(linea[linea.length - 1])) break;
+      const candH = porPunto[clave(cab)] || [];
+      for (let b = 0; b < candH.length; b++){
+        if (usado[candH[b]]) continue;
+        usado[candH[b]] = true; linea.unshift(otroExtremo(candH[b], cab)); crecer = true; break;
+      }
+    }
+    lineas.push(linea);
+  }
+  return lineas;
+}
+function anaCentros(V){
+  const centros = [];
+  for (let r = 2; r < MODNY - 2; r++) for (let c = 2; c < MODNX - 2; c++){
+    const v = V[r * MODNX + c];
+    let esMin = true, esMax = true, anilloMin = Infinity, anilloMax = -Infinity;
+    for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++){
+      if (!dr && !dc) continue;
+      const n = V[(r + dr) * MODNX + (c + dc)];
+      if (n <= v) esMin = false;
+      if (n >= v) esMax = false;
+      if (Math.max(Math.abs(dr), Math.abs(dc)) === 2){ if (n < anilloMin) anilloMin = n; if (n > anilloMax) anilloMax = n; }
+    }
+    if (esMin && anilloMin - v >= 0.4) centros.push({ tipo: "B", r: r, c: c, valor: v, prof: anilloMin - v });
+    else if (esMax && v - anilloMax >= 0.4) centros.push({ tipo: "A", r: r, c: c, valor: v, prof: v - anilloMax });
+  }
+  centros.sort((a, b) => b.prof - a.prof);
+  return centros;
+}
+function anaBilinear(V, lat, lon){
+  const fx = Math.max(0, Math.min(MODNX - 1.001, (lon - MODG.lon0) / MODSX));
+  const fy = Math.max(0, Math.min(MODNY - 1.001, (MODG.lat1 - lat) / MODSY));
+  const x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0;
+  const g = (x, y) => V[y * MODNX + x];
+  return (g(x0, y0) * (1 - tx) + g(x0 + 1, y0) * tx) * (1 - ty) + (g(x0, y0 + 1) * (1 - tx) + g(x0 + 1, y0 + 1) * tx) * ty;
+}
+function anaZonaTxt(lat, lon){
+  if (lat >= 23.15){
+    if (lon < -82.5) return "sobre el estrecho de la Florida, al norte del occidente cubano";
+    if (lon < -79) return "al norte de Cuba, entre la Florida y las Bahamas";
+    return "sobre el Atlántico, al norte de Cuba";
+  }
+  if (lat >= 20.35){
+    if (lon < -80.6) return "sobre el occidente de Cuba";
+    if (lon <= -76.9) return "sobre el centro de Cuba";
+    return "sobre el oriente de Cuba";
+  }
+  if (lon < -80.6) return "sobre el Caribe occidental, al sur de Cuba";
+  if (lon <= -76.9) return "sobre el Caribe, al sur del centro de Cuba";
+  return "sobre el Caribe, al sur del oriente de Cuba";
+}
+function anaDirTxt(u, v){
+  const dirs = ["norte", "nordeste", "este", "sureste", "sur", "suroeste", "oeste", "noroeste"];
+  const ang = (Math.atan2(-u, -v) * 180 / Math.PI + 360) % 360;
+  return dirs[Math.round(ang / 45) % 8];
+}
+function anaBarbasDraw(){
+  if (!anaS.map || !anaS.uv || !anaS.W) return;
+  const cont = anaS.map.getContainer();
+  if (!anaS.cv){
+    anaS.cv = document.createElement("canvas");
+    anaS.cv.style.cssText = "position:absolute;inset:0;pointer-events:none;z-index:450;";
+    cont.appendChild(anaS.cv);
+  }
+  const s = anaS.map.getSize();
+  if (s && s.x > 0){ anaS.cv.width = s.x; anaS.cv.height = s.y; }
+  const ctx = anaS.cv.getContext("2d"); if (!ctx) return;
+  ctx.clearRect(0, 0, anaS.cv.width, anaS.cv.height);
+  const B = anaS.uv, hIdx = anaS.hIdx;
+  let n = 0;
+  for (let r = 0; r < MODNY; r += 2) for (let c = 0; c < MODNX; c += 2){
+    const j = r * MODNX + c;
+    const u = B.wind_u_component_10m[j] ? B.wind_u_component_10m[j][hIdx] : null;
+    const v = B.wind_v_component_10m[j] ? B.wind_v_component_10m[j][hIdx] : null;
+    if (u === null || u === undefined || v === null || v === undefined) continue;
+    const pt = anaS.map.latLngToContainerPoint([MODG.lat1 - r * MODSY, MODG.lon0 + c * MODSX]);
+    modDibujaBarba(ctx, pt.x, pt.y, u, v, anaS.W[j]);
+    n++;
+  }
+  anaS.diag.barbas = n;
+}
+function anaPerspectivaTxt(P, W, B, hIdx, centros){
+  const f = [];
+  const alta = centros.find(cn => cn.tipo === "A"), baja = centros.find(cn => cn.tipo === "B");
+  const latLon = cn => ({ lat: MODG.lat1 - cn.r * MODSY, lon: MODG.lon0 + cn.c * MODSX });
+  if (alta && baja){
+    const dom = alta.prof >= baja.prof ? alta : baja, otro = dom === alta ? baja : alta;
+    const dpos = latLon(dom), opos = latLon(otro);
+    f.push("El sistema dominante es " + (dom.tipo === "A" ? "una alta presión" : "una baja presión") + " de " + Math.round(dom.valor) + " hPa centrada " + anaZonaTxt(dpos.lat, dpos.lon) + ".");
+    f.push("También se define " + (otro.tipo === "A" ? "una alta" : "una baja") + " de " + Math.round(otro.valor) + " hPa " + anaZonaTxt(opos.lat, opos.lon) + ".");
+  } else if (alta){
+    const pos = latLon(alta);
+    f.push("Domina el área una alta presión de " + Math.round(alta.valor) + " hPa centrada " + anaZonaTxt(pos.lat, pos.lon) + ", cuyo campo abarca a Cuba y sus mares cercanos.");
+  } else if (baja){
+    const pos = latLon(baja);
+    f.push("Domina el área una baja presión de " + Math.round(baja.valor) + " hPa centrada " + anaZonaTxt(pos.lat, pos.lon) + ".");
+  } else {
+    let mn = Infinity, mx = -Infinity;
+    for (let j = 0; j < P.length; j++){ if (P[j] < mn) mn = P[j]; if (P[j] > mx) mx = P[j]; }
+    f.push("El campo de presión está débil y sin centros cerrados sobre el área: los valores van de " + Math.round(mn) + " a " + Math.round(mx) + " hPa.");
+  }
+  const pC = anaBilinear(P, 21.9, -79.5);
+  let wm = { v: -1, lat: 0, lon: 0, u: null, w: null };
+  for (let r = 0; r < MODNY; r++) for (let c = 0; c < MODNX; c++){
+    const lat = MODG.lat1 - r * MODSY, lon = MODG.lon0 + c * MODSX;
+    const j = r * MODNX + c;
+    if (W[j] > wm.v) wm = { v: W[j], lat: lat, lon: lon,
+      u: B && B.wind_u_component_10m[j] ? B.wind_u_component_10m[j][hIdx] : null,
+      w: B && B.wind_v_component_10m[j] ? B.wind_v_component_10m[j][hIdx] : null };
+  }
+  let vf = "Sobre Cuba la presión ronda los " + Math.round(pC) + " hPa";
+  if (wm.v > 0){
+    vf += " y el viento en superficie llega hasta " + Math.round(wm.v) + " km/h";
+    if (wm.u !== null && wm.u !== undefined && wm.w !== null && wm.w !== undefined) vf += ", del " + anaDirTxt(wm.u, wm.w);
+    vf += ", " + anaZonaTxt(wm.lat, wm.lon);
+  }
+  f.push(vf + ".");
+  if (nhcApuntePlano) f.push(nhcApuntePlano);
+  return { texto: f.join(" "), pCuba: Math.round(pC * 10) / 10,
+    vientoMax: wm.v > 0 ? { kmh: Math.round(wm.v), lat: Math.round(wm.lat * 100) / 100, lon: Math.round(wm.lon * 100) / 100 } : null };
+}
+async function initAnaPropio(){
+  if (anaS.init || anaS.cargando) return;
+  const box = document.getElementById("mapAnaPropio");
+  if (!box || typeof L === "undefined") return;
+  anaS.cargando = true;
+  const persp = document.getElementById("anaPerspectiva");
+  try {
+    if (!anaS.map){
+      anaS.map = L.map("mapAnaPropio", { scrollWheelZoom: false });
+      anaS.map.fitBounds([[MODG.lat0 - 0.4, MODG.lon0 - 0.4], [MODG.lat1 + 0.4, MODG.lon1 + 0.4]]);
+      L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 12, attribution: "© Esri · Análisis: LABMET sobre el modelo" }).addTo(anaS.map);
+      anaS.map.on("moveend zoomend resize", anaBarbasDraw);
+    } else anaS.map.invalidateSize();
+    const now = new Date(); now.setMinutes(0, 0, 0);
+    const dayISO = now.toISOString().slice(0, 10);
+    const hIdx = now.getUTCHours();
+    const model = modS.model;
+    const A = await modFetchGroup(model, "A", dayISO);
+    let B = null;
+    try { B = await modFetchGroup(model, "B", dayISO); } catch(e){ B = null; }
+    const P = anaGridVals(A.pressure_msl, hIdx), W = anaGridVals(A.wind_speed_10m, hIdx);
+    anaS.uv = B; anaS.W = W; anaS.hIdx = hIdx;
+    if (anaS.grupo) anaS.map.removeLayer(anaS.grupo);
+    anaS.grupo = L.layerGroup().addTo(anaS.map);
+    let mn = Infinity, mx = -Infinity;
+    for (let j = 0; j < P.length; j++){ if (P[j] < mn) mn = P[j]; if (P[j] > mx) mx = P[j]; }
+    const niveles = [];
+    for (let lv = Math.ceil(mn / 4) * 4; lv <= mx; lv += 4) niveles.push(lv);
+    let nPol = 0;
+    const muestras = [];
+    niveles.forEach(nivel => {
+      const lineas = anaContornos(P, nivel);
+      let mejor = null;
+      lineas.forEach(linea => {
+        if (linea.length < 2) return;
+        const ll = linea.map(p => [MODG.lat1 - p[1] * MODSY, MODG.lon0 + p[0] * MODSX]);
+        L.polyline(ll, { color: "#ffffff", weight: 3.4, opacity: 0.85 }).addTo(anaS.grupo);
+        L.polyline(ll, { color: "#33566e", weight: 1.3, opacity: 0.95 }).addTo(anaS.grupo);
+        nPol++;
+        if (!mejor || linea.length > mejor.length) mejor = linea;
+      });
+      if (mejor){
+        const mid = mejor[Math.floor(mejor.length / 2)];
+        const lat = MODG.lat1 - mid[1] * MODSY, lon = MODG.lon0 + mid[0] * MODSX;
+        const ic = L.divIcon({ className: "anaIsoWrap", html: '<div class="ana-lbl-iso">' + nivel + '</div>', iconSize: [0, 0] });
+        L.marker([lat, lon], { icon: ic, interactive: false }).addTo(anaS.grupo);
+        muestras.push({ nivel: nivel, lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100 });
+      }
+    });
+    let centros = anaCentros(P);
+    let nA = 0, nB = 0;
+    centros = centros.filter(cn => {
+      if (cn.tipo === "A"){ if (nA >= 3) return false; nA++; }
+      else { if (nB >= 3) return false; nB++; }
+      return true;
+    }).map(cn => ({ tipo: cn.tipo, r: cn.r, c: cn.c, valor: Math.round(cn.valor * 10) / 10, prof: Math.round(cn.prof * 100) / 100,
+      lat: Math.round((MODG.lat1 - cn.r * MODSY) * 100) / 100, lon: Math.round((MODG.lon0 + cn.c * MODSX) * 100) / 100 }));
+    centros.forEach(cn => {
+      const ic = L.divIcon({ className: "anaCentroWrap", html: '<div class="ana-centro ' + (cn.tipo === "B" ? "b" : "a") + '"><b>' + cn.tipo + '</b><span>' + Math.round(cn.valor) + '</span></div>', iconSize: [0, 0] });
+      L.marker([cn.lat, cn.lon], { icon: ic, interactive: false }).addTo(anaS.grupo);
+    });
+    const per = anaPerspectivaTxt(P, W, B, hIdx, centros);
+    if (persp) persp.innerHTML = per.texto;
+    const pie = document.getElementById("anaPropioPie");
+    if (pie) pie.textContent = "Análisis a partir de los modelos numéricos (" + modNombreModelo(model) + ") · Elaboración: LABMET · Válido: " +
+      now.toLocaleString("es", { timeZone: "America/Havana", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " (hora de Cuba)";
+    anaS.diag = { niveles: niveles, polilineas: nPol, centros: centros, pCuba: per.pCuba, vientoMax: per.vientoMax,
+      perspectiva: per.texto, modelo: model, muestras: muestras, barbas: 0 };
+    anaBarbasDraw();
+    anaS.init = true;
+  } catch(e){
+    if (persp) persp.textContent = "El análisis propio no pudo calcularse ahora mismo" + (/429|Failed to fetch|NetworkError/i.test(String(e && e.message || e)) ? " (el servicio de datos está limitando las peticiones: espera un minuto y vuelve a abrir la pestaña)." : ".");
+    anaS.diag.error = String(e && e.message || e);
+  }
+  anaS.cargando = false;
+}
+(function(){
+  const btn = document.querySelector('.sheetTabs button[data-sec="analisis"]');
+  if (btn) btn.addEventListener("click", () => setTimeout(initAnaPropio, 60));
+  const w = document.getElementById("anaPropioWrap");
+  if (w && "IntersectionObserver" in window){
+    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) initAnaPropio(); }, { rootMargin: "200px" });
+    io.observe(w);
+  }
+})();
+
+/* ---------- MODELOS · TIEMPO SEVERO — HRRR CARIBE (v12) ----------
+   Las imágenes del HRRR_CAR (GSL/NOAA) se sirven bajo demanda: el PNG
+   de un producto/hora da 404 hasta que alguien pide su página de mapa
+   (displayMapUpdated.cgi), que lo genera en el acto. El bloque lo
+   resuelve así: prueba el PNG; si falla, «calienta» pidiendo la página
+   del producto (fetch no-cors: no se lee la respuesta, solo dispara la
+   generación) y reintenta. La corrida es diaria (00Z) y el fcst va de
+   0 a 36 h; por defecto se muestra el múltiplo de 3 más cercano a la
+   hora actual. La amenaza de rayos y el granizo HAILCAST existen como
+   filas del catálogo pero SIN enlace a mapa para este dominio: no se
+   publican, y el bloque lo dice en la página. */
+const SEV_PRODS = [
+  { id: "mref", pt: "mref_full_sfc", nombre: "Reflectividad máxima a 1 km — el «radar simulado»",
+    desc: "Las celdas de tormenta que el modelo dibuja para esa hora, en dBZ: es lo más parecido a un radar sobre Cuba. Los núcleos de 40–50 dBZ o más son tormentas fuertes, con lluvia intensa y posibles rachas." },
+  { id: "gust", pt: "gust_full_10m", nombre: "Rachas potenciales a 10 m",
+    desc: "La racha máxima que las tormentas y el flujo pueden producir, en nudos (35 kt ≈ 65 km/h): el dato clave para los desplomes y las líneas de tormenta de la tarde." },
+  { id: "totp", pt: "totp_full_sfc", nombre: "Lluvia en 1 hora",
+    desc: "La lluvia de la última hora en pulgadas (1 pulgada ≈ 25 mm): señala dónde el modelo concentra la lluvia más intensa en poco tiempo, el riesgo de inundaciones locales." },
+  { id: "cape", pt: "cape_full_sfc", nombre: "CAPE de superficie",
+    desc: "La energía disponible para las tormentas (J/kg): con valores sobre 2 000 el ambiente está cargado y las turbonadas pueden ser fuertes si algo las dispara." }
+];
+const sevS = { init: false, corrida: null, fcst: 6, figs: {},
+  diag: { corrida: null, fcst: null, figuras: {}, orden: [] } };
+function sevRuntimeDe(fecha){
+  return fecha.getUTCFullYear() + "" + String(fecha.getUTCMonth() + 1).padStart(2, "0") + String(fecha.getUTCDate()).padStart(2, "0") + "00";
+}
+function sevURLImg(rt, pt, fc){
+  return "https://rapidrefresh.noaa.gov/hrrr/CARIBBEAN/for_web/hrrr_car_jet/" + rt + "/full/" + pt + "_f" + String(fc).padStart(3, "0") + ".png";
+}
+function sevURLCgi(rt, pt, fc){
+  return "https://rapidrefresh.noaa.gov/hrrr/CARIBBEAN/displayMapUpdated.cgi?keys=hrrr_car_jet:&runtime=" + rt + "&plot_type=" + pt + "&fcst=" + String(fc).padStart(3, "0") + "&time_inc=60&num_times=37&model=hrrr&ptitle=HRRR_CAR%20Model%20Fields&maxFcstLen=36&fcstStrLen=-1&domain=full&adtfn=1";
+}
+function sevProbar(src, ms){
+  return new Promise(res => {
+    const img = new Image();
+    let listo = false;
+    const t = setTimeout(() => { if (!listo){ listo = true; res(false); } }, ms || 12000);
+    img.onload = () => { if (!listo){ listo = true; clearTimeout(t); res(true); } };
+    img.onerror = () => { if (!listo){ listo = true; clearTimeout(t); res(false); } };
+    img.src = src;
+  });
+}
+async function sevHayMapa(rt, pt, fc){
+  // El PNG aparece unos segundos DESPUÉS de que la página del producto
+  // responde (verificado en vivo): por eso se calienta hasta 3 veces con
+  // esperas crecientes antes de dar el mapa por no disponible.
+  const url = sevURLImg(rt, pt, fc);
+  if (await sevProbar(url, 8000)) return true;
+  const esperas = [1500, 3500, 5000];
+  for (let i = 0; i < esperas.length; i++){
+    try { await fetch(sevURLCgi(rt, pt, fc), { mode: "no-cors" }); } catch(e){}
+    await modSleep(esperas[i]);
+    if (await sevProbar(url + "?v=" + (i + 2), 12000)) return true;
+  }
+  return false;
+}
+function sevValidezTxt(){
+  const rt = sevS.corrida;
+  const f = new Date(Date.UTC(+rt.slice(0, 4), +rt.slice(4, 6) - 1, +rt.slice(6, 8), 0) + sevS.fcst * 3600e3);
+  return "· Válido: " + f.toLocaleString("es", { timeZone: "America/Havana", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " (hora de Cuba)";
+}
+function sevEstadoTxt(){
+  const e = document.getElementById("sevEstado");
+  if (!e || !sevS.corrida) return;
+  const rt = sevS.corrida;
+  const runD = new Date(Date.UTC(+rt.slice(0, 4), +rt.slice(4, 6) - 1, +rt.slice(6, 8), 0));
+  e.textContent = "Corrida de las 00:00 UTC del " + runD.toLocaleDateString("es", { timeZone: "UTC", day: "numeric", month: "short" }) +
+    " · pronóstico +" + sevS.fcst + " h " + sevValidezTxt().replace("· ", "· ");
+}
+function sevBuildFigs(){
+  const wrap = document.getElementById("sevFigs");
+  if (!wrap || wrap.childNodes.length) return;
+  SEV_PRODS.forEach(p => {
+    const fig = document.createElement("figure");
+    fig.className = "sev-fig"; fig.dataset.prod = p.id;
+    const img = document.createElement("img");
+    img.alt = p.nombre; img.style.display = "none"; img.loading = "lazy";
+    const cap = document.createElement("figcaption");
+    cap.innerHTML = "<b>" + p.nombre + ".</b> " + p.desc + ' <span class="sev-val"></span>';
+    const fallo = document.createElement("p");
+    fallo.className = "mc-error"; fallo.hidden = true;
+    fallo.textContent = "Este mapa no cargó desde el servidor del laboratorio; los demás siguen disponibles.";
+    fig.appendChild(img); fig.appendChild(cap); fig.appendChild(fallo);
+    wrap.appendChild(fig);
+    sevS.figs[p.id] = { def: p, el: fig, imgEl: img, valEl: cap.querySelector(".sev-val"), falloEl: fallo, estado: "pendiente" };
+  });
+  sevS.diag.orden = SEV_PRODS.map(p => p.id);
+}
+async function sevCargarFigura(f){
+  const ok = await sevHayMapa(sevS.corrida, f.def.pt, sevS.fcst);
+  if (ok){
+    f.imgEl.src = sevURLImg(sevS.corrida, f.def.pt, sevS.fcst);
+    f.imgEl.style.display = ""; f.falloEl.hidden = true; f.estado = "ok";
+    f.valEl.textContent = sevValidezTxt();
+  } else {
+    f.imgEl.style.display = "none"; f.falloEl.hidden = false; f.estado = "fallo";
+    f.valEl.textContent = "";
+  }
+  sevS.diag.figuras[f.def.id] = f.estado;
+}
+async function initSevero(){
+  if (sevS.init) return;
+  sevS.init = true;
+  const estado = document.getElementById("sevEstado");
+  const menos = document.getElementById("sevMenos"), mas = document.getElementById("sevMas");
+  if (menos) menos.addEventListener("click", () => sevPaso(-3));
+  if (mas) mas.addEventListener("click", () => sevPaso(3));
+  sevBuildFigs();
+  if (estado) estado.textContent = "Buscando la última corrida del HRRR Caribe…";
+  const ahora = new Date();
+  const cands = [0, 1, 2].map(d => sevRuntimeDe(new Date(ahora.getTime() - d * 86400e3)));
+  for (let i = 0; i < cands.length; i++){
+    const rt = cands[i];
+    const runMs = Date.UTC(+rt.slice(0, 4), +rt.slice(4, 6) - 1, +rt.slice(6, 8), 0);
+    const fc = Math.max(0, Math.min(36, Math.round((ahora.getTime() - runMs) / 3600e3 / 3) * 3));
+    if (await sevHayMapa(rt, "mref_full_sfc", fc)){ sevS.corrida = rt; sevS.fcst = fc; break; }
+  }
+  if (!sevS.corrida){
+    if (estado) estado.textContent = "El HRRR Caribe no respondió ahora mismo; el bloque se reintenta al volver a abrir Modelos.";
+    sevS.diag.error = "sin corrida disponible";
+    sevS.init = false;
+    return;
+  }
+  sevS.diag.corrida = sevS.corrida; sevS.diag.fcst = sevS.fcst;
+  sevEstadoTxt();
+  for (const id of Object.keys(sevS.figs)) await sevCargarFigura(sevS.figs[id]);
+}
+function sevPaso(d){
+  if (!sevS.corrida) return;
+  const nf = Math.max(0, Math.min(36, sevS.fcst + d));
+  if (nf === sevS.fcst) return;
+  sevS.fcst = nf; sevS.diag.fcst = nf;
+  sevEstadoTxt();
+  Object.keys(sevS.figs).forEach(id => { sevCargarFigura(sevS.figs[id]); });
 }
 
 /* ---------- CLIMA (normales ERA5 incrustadas) ---------- */
@@ -5171,7 +5709,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v11",
+  version: "v12",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
@@ -5185,12 +5723,15 @@ window.MC_V2 = {
   },
   campoImg: function(){ return modS.lastImg; },
   resumenNHC: nhcResumen,
+  ciclonesMapa: function(){ return cicS.diag; },
+  severoDiag: function(){ return sevS.diag; },
+  analisisDiag: function(){ return anaS.diag; },
   ttCorrida: ttCorrida,
   cargarMapaTT: ttCargarMapa,
   valorEnRejilla: function(j){ return (modS.lastData && modS.lastData[j]) ? modS.lastData[j][modS.lastHIdx] : null; },
   estado: function(){
     return { init: Object.keys(initHecho), vista: vistaActual, situacion: sitListo,
-      estaciones: estLista ? estLista.length : 0, salud: !!salDatos, agro: agroListo, ciclones: cicListo, nhc: nhcInfo,
+      estaciones: estLista ? estLista.length : 0, salud: !!salDatos, agro: agroListo, ciclones: cicListo, nhc: nhcInfo, cicMapa: cicS.diag, severo: sevS.diag, analisis: anaS.diag,
       satCapas: satS.capas.length, radCapas: radS.capas.length,
       satIdx: satS.idx,
       satLimites: { activo: satS.limites, encuadre: satS.encuadre, paneZ: 650,
