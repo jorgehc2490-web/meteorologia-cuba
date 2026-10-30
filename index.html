@@ -526,6 +526,10 @@
   .sev-fig figcaption { font-size:13.5px; line-height:1.55; color:#24455c; margin-top:7px; }
   .sev-fig figcaption b { color:#0a2f47; }
   .sev-nota { font-size:13px; line-height:1.5; color:#5a7186; margin:2px 0 4px; }
+  .gdi-fig { margin:14px 0; }
+  .gdi-fig img { width:100%; height:auto; display:block; border:1px solid #d9e4ea; border-radius:10px; background:#fff; }
+  .gdi-fig figcaption { font-size:13.5px; line-height:1.55; color:#24455c; margin-top:7px; }
+  .gdi-fig figcaption b { color:#0a2f47; }
   .mod-panel { position:absolute; left:8px; bottom:8px; background:rgba(6,40,63,.88); color:#fff; padding:4px 12px; border-radius:8px; font-size:12.5px; font-weight:700; z-index:800; pointer-events:none; box-shadow:0 1px 5px rgba(0,0,0,.35); }
   .mod-canvas { position:absolute; inset:0; pointer-events:none; }
   input[type=range].mc-range { flex:1 1 180px; accent-color:#0d4066; }
@@ -823,6 +827,13 @@
     <div class="mc-ctl"><button id="sevMenos" type="button">◀ −3 h</button><span class="mc-hora" id="sevEstado">Sin cargar: se activa al abrir esta sección.</span><button id="sevMas" type="button">+3 h ▶</button></div>
     <div id="sevFigs"></div>
     <p class="mc-nota">La <b>amenaza de rayos</b> y el <b>tamaño del granizo (HAILCAST)</b> también los calcula este modelo, pero el laboratorio no publica esos dos mapas para el dominio del Caribe — por eso no aparecen aquí —. Las imágenes se generan en el servidor del laboratorio al pedirlas: la primera carga de cada mapa y de cada hora puede tardar unos segundos, y cada mapa se pide solo cuando se elige en el selector. Fuente: HRRR_CAR, Global Systems Laboratory (NOAA). <a href="https://rapidrefresh.noaa.gov/hrrr/CARIBBEAN/Welcome.cgi?dsKey=hrrr_car_jet" target="_blank" rel="noopener">Página del modelo ↗</a></p>
+    <h3 class="mc-sub">🌡️ Índice Gálvez-Davison (GDI) — el ambiente para la convección tropical</h3>
+    <p>El <b>GDI</b> es el índice de inestabilidad creado por los Escritorios Internacionales del WPC (Gálvez y Davison, 2014) pensando en el trópico, donde los índices clásicos rinden peor: combina el calor y la humedad de la troposfera baja y media con el efecto estabilizador de las dorsales en altura y de la inversión de los alisios, y es muy útil para seguir las <b>ondas tropicales</b>. Sale del modelo <b>GFS</b> en cuatro corridas diarias (00, 06, 12 y 18 UTC) y la carta cubre el <b>Caribe y Centroamérica</b>, con Cuba en el centro. Cuanto mayor es el GDI, mayor es el potencial de <b>convección profunda y de lluvia fuerte</b>. Cambie la <b>corrida</b> con los botones — en «Automática» se muestra la más reciente disponible — y la <b>hora de pronóstico</b> con las flechas.</p>
+    <p class="sev-nota">El GDI describe el ambiente, no detecta la severidad: no considera el viento ni los mecanismos de disparo. Se lee junto a los mapas del HRRR Caribe de arriba, y los avisos de esta página salen del motor de avisos, nunca de esta carta sola.</p>
+    <div class="mc-ctl"><span>Corrida GFS:</span><span id="gdiRuns"><button data-gr="auto" class="act" type="button">Automática</button><button data-gr="00" type="button">00Z</button><button data-gr="06" type="button">06Z</button><button data-gr="12" type="button">12Z</button><button data-gr="18" type="button">18Z</button></span></div>
+    <div class="mc-ctl"><button id="gdiMenos" type="button">◀ Anterior</button><span class="mc-hora" id="gdiEstado">Sin cargar: se activa al abrir esta sección.</span><button id="gdiMas" type="button">Siguiente ▶</button></div>
+    <figure class="gdi-fig"><img id="gdiImg" alt="Carta del índice Gálvez-Davison (GDI) para el Caribe y Centroamérica" hidden><figcaption><b>Cómo se lee (tabla del WPC).</b> GDI mayor de +45: tormentas con lluvia fuerte, de dispersas a generalizadas · +35 a +45: tormentas dispersas, algunas con lluvia fuerte · +25 a +35: tormentas aisladas, o convección poco profunda con alguna tormenta · +15 a +25: tormentas muy aisladas, casi todo convección poco profunda · por debajo de +5 manda la subsidencia (inversión fuerte) y la convección queda muy superficial y aislada.</figcaption><p class="mc-error" id="gdiFallo" hidden>La carta del GDI no cargó desde el servidor del WPC; el resto de la sección sigue disponible.</p></figure>
+    <p class="mc-nota">Fuente: WPC / NOAA — <a href="https://www.wpc.ncep.noaa.gov/international/gdi/" target="_blank" rel="noopener">Página del GDI ↗</a> · <a href="https://www.wpc.ncep.noaa.gov/international/gdi/html5loop_gfs12_gdi_car.html" target="_blank" rel="noopener">Animación completa del Caribe ↗</a>. Las cartas son las últimas publicadas por el WPC para cada corrida: las de una corrida recién iniciada pueden tardar en aparecer, y en ese caso el bloque muestra la corrida anterior disponible. La hora válida impresa en la propia carta manda sobre cualquier cálculo de esta página.</p>
   </section>
 
   <section class="mc-sec" id="ciclones" aria-label="Ciclones tropicales">
@@ -5263,6 +5274,7 @@ function initModelos(){
   });
   modRender();
   initSevero();
+  initGdi();
 }
 document.querySelectorAll("#modModelos button").forEach(function(b){
   b.addEventListener("click", function(){
@@ -5754,6 +5766,121 @@ function sevPaso(d){
   if (f) sevCargarFigura(f);
 }
 
+/* ---------- MODELOS · ÍNDICE GÁLVEZ-DAVISON (GDI) — WPC (v32) ----------
+   Pedido de Jorge (30-oct-2026): la carta del GDI como apoyo del bloque
+   de tiempo severo. El WPC publica las cartas del GFS con nombre FIJO
+   por corrida y hora, sin fecha en la ruta:
+   international/gdi/car_gdi_gfs{00|06|12|18}f{FFF}.gif — siempre la
+   última publicada de esa corrida (verificado en vivo el 30-oct-2026:
+   HTTP 200, GIF de 1023x696). Los pasos de hora son cada 3 h hasta +36
+   y cada 6 h hasta +168 (archivo oficial de la animación HAniS del
+   WPC: loop_gfs{RR}_gdi_car_files.txt). Como el nombre no lleva fecha,
+   la fecha de la corrida se ESTIMA (última ocurrencia de esa hora UTC
+   terminada hace al menos 4 h) y, si la carta estimada no responde, se
+   retrocede de candidata — 24 h en la misma corrida; en Automática, de
+   6 en 6 h hasta 4 —: la lección de la v18, una corrida sin cartas
+   todavía no es una corrida inexistente. La carta trae impresa su hora
+   válida y eso es lo que manda; la etiqueta de esta página es la
+   estimación de la corrida que sí cargó. */
+const GDI_FRAMES = [0,3,6,9,12,15,18,21,24,27,30,33,36,42,48,54,60,66,72,78,84,90,96,102,108,114,120,126,132,138,144,150,156,162,168];
+const gdiS = { init: false, sel: "auto", run: null, runMs: 0, idx: 4,
+  diag: { run: null, frame: null, estado: "sin cargar" } };
+function gdiURL(run, f){
+  return "https://www.wpc.ncep.noaa.gov/international/gdi/car_gdi_gfs" + run + "f" + String(f).padStart(3, "0") + ".gif";
+}
+function gdiBaseMs(){
+  return Math.floor((Date.now() - 4 * 3600e3) / (6 * 3600e3)) * (6 * 3600e3);
+}
+function gdiCandidatas(){
+  if (gdiS.sel === "auto"){
+    const base = gdiBaseMs(), out = [];
+    for (let i = 0; i < 4; i++){
+      const ms = base - i * 6 * 3600e3;
+      out.push({ run: String(new Date(ms).getUTCHours()).padStart(2, "0"), ms });
+    }
+    return out;
+  }
+  const hh = parseInt(gdiS.sel, 10);
+  let ms = gdiBaseMs();
+  while (new Date(ms).getUTCHours() !== hh) ms -= 3600e3;
+  return [{ run: gdiS.sel, ms }, { run: gdiS.sel, ms: ms - 24 * 3600e3 }];
+}
+function gdiIdxCercano(runMs){
+  const ahora = Date.now();
+  let mejor = 0, bd = Infinity;
+  GDI_FRAMES.forEach((f, i) => {
+    const dt = Math.abs(runMs + f * 3600e3 - ahora);
+    if (dt < bd){ bd = dt; mejor = i; }
+  });
+  return mejor;
+}
+function gdiEstadoTxt(){
+  const e = document.getElementById("gdiEstado");
+  if (!e || !gdiS.run) return;
+  const runD = new Date(gdiS.runMs);
+  const f = GDI_FRAMES[gdiS.idx];
+  const val = new Date(gdiS.runMs + f * 3600e3);
+  e.textContent = "Corrida GFS de las " + gdiS.run + ":00 UTC del " +
+    runD.toLocaleDateString("es", { timeZone: "UTC", day: "numeric", month: "short" }) +
+    " · pronóstico +" + f + " h · Válido: " +
+    val.toLocaleString("es", { timeZone: "America/Havana", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " (hora de Cuba)";
+}
+async function gdiCargar(){
+  const img = document.getElementById("gdiImg"), fallo = document.getElementById("gdiFallo");
+  const estado = document.getElementById("gdiEstado");
+  if (!img) return;
+  if (estado) estado.textContent = "Buscando la última corrida del GFS…";
+  const cands = gdiCandidatas();
+  for (const c of cands){
+    const idx = (gdiS.run === c.run && gdiS.runMs === c.ms) ? gdiS.idx : gdiIdxCercano(c.ms);
+    const f = GDI_FRAMES[idx];
+    const url = gdiURL(c.run, f);
+    if (await sevProbar(url, 10000)){
+      gdiS.run = c.run; gdiS.runMs = c.ms; gdiS.idx = idx;
+      img.onerror = () => { img.hidden = true; if (fallo) fallo.hidden = false; gdiS.diag.estado = "fallo"; };
+      img.onload = () => { img.hidden = false; if (fallo) fallo.hidden = true; };
+      img.src = url;
+      img.hidden = false;
+      if (fallo) fallo.hidden = true;
+      gdiS.diag.run = c.run; gdiS.diag.frame = f; gdiS.diag.estado = "ok";
+      gdiEstadoTxt();
+      return;
+    }
+  }
+  img.hidden = true;
+  if (fallo) fallo.hidden = false;
+  if (estado) estado.textContent = "El WPC no respondió ahora mismo; se reintenta al volver a abrir Modelos.";
+  gdiS.diag.estado = "fallo";
+}
+function gdiPaso(d){
+  if (!gdiS.run) return;
+  const ni = Math.max(0, Math.min(GDI_FRAMES.length - 1, gdiS.idx + d));
+  if (ni === gdiS.idx) return;
+  gdiS.idx = ni;
+  const f = GDI_FRAMES[ni];
+  const img = document.getElementById("gdiImg"), fallo = document.getElementById("gdiFallo");
+  if (!img) return;
+  img.onerror = () => { img.hidden = true; if (fallo) fallo.hidden = false; gdiS.diag.estado = "fallo"; };
+  img.onload = () => { img.hidden = false; if (fallo) fallo.hidden = true; gdiS.diag.frame = f; gdiS.diag.estado = "ok"; };
+  img.src = gdiURL(gdiS.run, f);
+  gdiEstadoTxt();
+}
+function initGdi(){
+  if (gdiS.init) return;
+  gdiS.init = true;
+  const menos = document.getElementById("gdiMenos"), mas = document.getElementById("gdiMas");
+  if (menos) menos.addEventListener("click", () => gdiPaso(-1));
+  if (mas) mas.addEventListener("click", () => gdiPaso(1));
+  document.querySelectorAll("#gdiRuns button").forEach(b => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll("#gdiRuns button").forEach(x => x.classList.toggle("act", x === b));
+      gdiS.sel = b.dataset.gr; gdiS.run = null;
+      gdiCargar();
+    });
+  });
+  gdiCargar();
+}
+
 /* ---------- CLIMA (normales ERA5 incrustadas) ---------- */
 var NORMALES = {"Pinar del Río": {"lat": 22.42, "lon": -83.69, "mensual": [[26.2, 18, 36], [27.4, 18.4, 26], [28.8, 19.3, 25], [30.7, 21.1, 36], [31.3, 22.7, 114], [31.1, 24, 177], [32, 24.2, 119], [31.8, 24.4, 145], [30.8, 24, 180], [29.4, 22.9, 114], [27.9, 20.6, 29], [26.9, 19.1, 25]], "recMax": {"v": 37, "f": "1998-07-02"}, "recMin": {"v": 9.5, "f": "1996-02-18"}, "anual": 1027}, "Artemisa": {"lat": 22.82, "lon": -82.76, "mensual": [[25.4, 19.1, 25], [26.5, 19.4, 22], [27.7, 20.2, 21], [29.6, 21.9, 30], [30.5, 23.4, 93], [30.6, 24.7, 151], [31.5, 25.2, 81], [31.5, 25.4, 109], [30.3, 24.9, 145], [28.9, 23.8, 99], [27.2, 21.7, 29], [26.2, 20.2, 19]], "recMax": {"v": 36, "f": "1998-06-17"}, "recMin": {"v": 11.1, "f": "1996-02-18"}, "anual": 823}, "La Habana": {"lat": 23.11, "lon": -82.37, "mensual": [[25.9, 19.8, 30], [27, 20.1, 29], [28.1, 20.7, 24], [29.9, 22.4, 37], [30.7, 23.8, 100], [31.2, 25, 163], [32.1, 25.6, 108], [32.2, 25.8, 134], [31, 25.3, 155], [29.5, 24.3, 100], [27.7, 22.5, 35], [26.7, 21, 23]], "recMax": {"v": 36.4, "f": "2020-04-12"}, "recMin": {"v": 12.2, "f": "1996-02-18"}, "anual": 937}, "San José de las Lajas": {"lat": 22.96, "lon": -82.15, "mensual": [[25.4, 18.8, 29], [26.6, 19.1, 28], [27.8, 19.7, 23], [29.6, 21.4, 40], [30.2, 22.7, 106], [30.5, 24, 165], [31.3, 24.5, 111], [31.4, 24.7, 135], [30.3, 24.2, 158], [28.8, 23.3, 103], [27, 21.3, 34], [26.1, 19.9, 22]], "recMax": {"v": 36.4, "f": "2017-08-05"}, "recMin": {"v": 11.4, "f": "1996-02-18"}, "anual": 953}, "Matanzas": {"lat": 23.04, "lon": -81.58, "mensual": [[25.8, 20.1, 29], [26.9, 20.3, 24], [28, 20.9, 22], [29.7, 22.4, 37], [30.3, 23.7, 102], [30.7, 24.9, 142], [31.4, 25.4, 93], [31.5, 25.6, 117], [30.5, 25.2, 140], [29, 24.3, 108], [27.2, 22.6, 46], [26.4, 21.2, 25]], "recMax": {"v": 38.1, "f": "2020-04-12"}, "recMin": {"v": 12.3, "f": "1996-01-10"}, "anual": 885}, "Cienfuegos": {"lat": 22.15, "lon": -80.45, "mensual": [[27.5, 19.3, 22], [28.6, 19.5, 24], [29.6, 20, 22], [31.3, 21.7, 32], [31.6, 23, 108], [31.7, 24.3, 134], [32.8, 24.7, 84], [32.8, 24.9, 101], [31.5, 24.5, 135], [30.1, 23.6, 98], [28.8, 21.7, 28], [28, 20.3, 18]], "recMax": {"v": 37.6, "f": "1998-07-28"}, "recMin": {"v": 10.7, "f": "2010-12-15"}, "anual": 806}, "Santa Clara": {"lat": 22.41, "lon": -79.96, "mensual": [[26.1, 18.1, 24], [27.4, 18.3, 27], [28.7, 18.8, 24], [30.5, 20.4, 45], [30.7, 21.8, 127], [31.1, 23.2, 151], [31.8, 23.6, 96], [31.9, 23.8, 117], [30.7, 23.3, 155], [29, 22.5, 113], [27.1, 20.6, 43], [26.5, 19.2, 24]], "recMax": {"v": 37.6, "f": "2020-04-12"}, "recMin": {"v": 8.8, "f": "2010-12-15"}, "anual": 945}, "Sancti Spíritus": {"lat": 21.93, "lon": -79.44, "mensual": [[27.4, 18.7, 19], [28.5, 18.9, 21], [29.5, 19.5, 20], [31.1, 21, 38], [31.2, 22.3, 133], [31.5, 23.6, 126], [32.6, 24.1, 86], [32.6, 24.2, 106], [31.1, 23.8, 139], [29.6, 23, 110], [28.3, 21.2, 38], [27.7, 19.8, 19]], "recMax": {"v": 37.1, "f": "2019-06-22"}, "recMin": {"v": 10.5, "f": "1996-02-18"}, "anual": 855}, "Ciego de Ávila": {"lat": 21.84, "lon": -78.76, "mensual": [[27.8, 19.5, 17], [28.9, 19.6, 17], [29.7, 20.2, 19], [31.3, 21.6, 37], [31.5, 22.7, 110], [31.8, 23.9, 110], [33.1, 24.4, 76], [33.1, 24.6, 100], [31.6, 24.1, 128], [30, 23.3, 100], [28.7, 21.8, 43], [28.2, 20.5, 16]], "recMax": {"v": 38.7, "f": "2017-07-20"}, "recMin": {"v": 10.9, "f": "2001-01-06"}, "anual": 773}, "Camagüey": {"lat": 21.38, "lon": -77.92, "mensual": [[28, 19.5, 18], [29.1, 19.5, 22], [30, 20, 25], [31.4, 21.3, 49], [31.3, 22.3, 154], [31.7, 23.6, 142], [32.7, 24, 95], [32.8, 24.1, 119], [31.5, 23.6, 159], [29.8, 22.9, 116], [28.4, 21.5, 43], [28, 20.4, 20]], "recMax": {"v": 37.8, "f": "1997-08-22"}, "recMin": {"v": 10.5, "f": "2001-01-06"}, "anual": 963}, "Las Tunas": {"lat": 20.96, "lon": -76.27, "mensual": [[27.1, 20.6, 27], [27.9, 20.6, 25], [28.6, 20.9, 36], [29.7, 21.8, 58], [30.1, 22.9, 129], [31, 24.2, 112], [31.9, 24.7, 62], [32.2, 24.8, 83], [31.1, 24.3, 134], [29.6, 23.6, 128], [27.7, 22.5, 70], [27.1, 21.5, 38]], "recMax": {"v": 37.4, "f": "2015-04-29"}, "recMin": {"v": 13.2, "f": "2020-01-23"}, "anual": 902}, "Holguín": {"lat": 20.89, "lon": -76.26, "mensual": [[27.6, 20.1, 27], [28.6, 20.1, 24], [29.4, 20.5, 36], [30.5, 21.5, 58], [30.7, 22.6, 131], [31.6, 23.8, 113], [32.6, 24.4, 61], [32.8, 24.5, 84], [31.6, 23.9, 135], [30, 23.2, 127], [28.2, 22, 71], [27.6, 21, 38]], "recMax": {"v": 38.2, "f": "2015-04-29"}, "recMin": {"v": 12.3, "f": "2020-01-23"}, "anual": 904}, "Bayamo": {"lat": 20.37, "lon": -76.64, "mensual": [[29.4, 18.9, 20], [30.5, 19, 20], [31.2, 19.9, 38], [32.4, 21.1, 67], [32.1, 22.3, 178], [32.7, 23.2, 144], [33.8, 23.4, 117], [33.9, 23.6, 132], [32.6, 23.3, 164], [31.1, 22.6, 141], [29.7, 21.1, 60], [29.2, 19.8, 29]], "recMax": {"v": 39.6, "f": "2018-07-21"}, "recMin": {"v": 10.2, "f": "2010-12-15"}, "anual": 1110}, "Santiago de Cuba": {"lat": 20.02, "lon": -75.83, "mensual": [[28.9, 21, 13], [29.4, 20.9, 16], [29.7, 21.3, 30], [30.3, 22.3, 47], [30.5, 23.4, 116], [31.3, 24.4, 78], [32.3, 24.8, 55], [32.2, 24.8, 82], [31.2, 24.5, 114], [30.1, 23.9, 109], [29.5, 23, 62], [29, 21.8, 24]], "recMax": {"v": 36, "f": "2017-09-07"}, "recMin": {"v": 15.7, "f": "2020-01-23"}, "anual": 746}, "Guantánamo": {"lat": 20.14, "lon": -75.21, "mensual": [[29.5, 20.2, 15], [30.2, 20.1, 18], [30.5, 20.6, 33], [31.2, 21.6, 57], [31.3, 22.8, 127], [32.4, 23.9, 93], [33.9, 24.6, 71], [33.7, 24.6, 96], [32.3, 24, 138], [31, 23.3, 114], [30.1, 22.2, 59], [29.6, 21, 25]], "recMax": {"v": 39, "f": "2019-07-28"}, "recMin": {"v": 13.4, "f": "2000-01-19"}, "anual": 847}, "Nueva Gerona": {"lat": 21.9, "lon": -82.8, "mensual": [[25.5, 20.8, 26], [26.4, 21.1, 18], [27.7, 21.9, 27], [29.5, 23.6, 30], [30.1, 24.9, 111], [30.3, 26, 136], [31.2, 26.5, 80], [31.2, 26.6, 113], [30.2, 26, 151], [28.9, 25.1, 126], [27.1, 23.2, 47], [26.1, 21.8, 24]], "recMax": {"v": 34.6, "f": "1998-07-11"}, "recMin": {"v": 13.3, "f": "2020-01-23"}, "anual": 889}};
 var CAP_MUN = { "Pinar del Río": "Pinar del Río", "Artemisa": "Artemisa", "La Habana": "Plaza de la Revolución",
@@ -6162,7 +6289,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v31",
+  version: "v32",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
@@ -6178,12 +6305,13 @@ window.MC_V2 = {
   resumenNHC: nhcResumen,
   ciclonesMapa: function(){ return cicS.diag; },
   severoDiag: function(){ return sevS.diag; },
+  gdiDiag: function(){ return gdiS.diag; },
   analisisDiag: function(){ return null; },
   nmmeDiag: function(){ return nmmeS.diag; },
   valorEnRejilla: function(j){ return (modS.lastData && modS.lastData[j]) ? modS.lastData[j][modS.lastHIdx] : null; },
   estado: function(){
     return { init: Object.keys(initHecho), vista: vistaActual, situacion: sitListo,
-      estaciones: estLista ? estLista.length : 0, salud: !!salDatos, agro: agroListo, ciclones: cicListo, nhc: nhcInfo, cicMapa: cicS.diag, severo: sevS.diag, analisis: null,
+      estaciones: estLista ? estLista.length : 0, salud: !!salDatos, agro: agroListo, ciclones: cicListo, nhc: nhcInfo, cicMapa: cicS.diag, severo: sevS.diag, gdi: gdiS.diag, analisis: null,
       satCapas: satS.capas.length, radCapas: radS.capas.length,
       satIdx: satS.idx,
       satLimites: { activo: satS.limites, encuadre: satS.encuadre, paneZ: 650,
@@ -6231,6 +6359,5 @@ window.MC_V2 = {
   setTimeout(aplicar, 1500);
 })();
 </script>
-<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
