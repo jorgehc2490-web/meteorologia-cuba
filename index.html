@@ -2984,15 +2984,155 @@ function descargarResumenMC(){
   pieImgMC(ctx);
   descargarCanvas(cv, "avisos-meteorologia-cuba-" + fechaCorta(diaSel) + ".png");
 }
-/* Tarjeta de una provincia con el sello del portal (1080×1350): silueta
-   ampliada con su nivel de tierra y las franjas del mar, temperaturas del
-   día y la lista de peligros con nivel, valor y recomendación breve. */
+/* ==== v38 · Tarjeta de provincia: mapa municipal en grande y solo
+   fenómenos activos. Corrección pedida por Jorge (1-nov) sobre la v37: la
+   silueta salía diminuta y la lista traía TODOS los fenómenos con el valor
+   truncado. Ahora: la provincia ocupa casi todo el ancho con CADA
+   MUNICIPIO pintado con su nivel de tierra más significativo (puntosDia +
+   MUN_GEO, la misma materia prima de la hoja de Avisos), sin franjas
+   costeras encima — el mar activo va en la lista, identificado por
+   costa — y la lista trae SOLO los fenómenos con nivel ≥ Amarillo, con
+   su detalle COMPLETO envuelto en varias líneas (nunca truncado) y letra
+   ≥ 26 px. La altura del lienzo crece lo que haga falta (mínimo 1350)
+   para que el mapa salga en grande y la lista quepa entera sin invadir
+   el pie. ==== */
+
+/* Nivel de tierra más significativo de un municipio en el día
+   seleccionado: el mayor entre sus fenómenos de tierra de puntosDia.
+   Devuelve undefined si aún no hay puntos del día (la tarjeta usa
+   entonces el nivel provincial para todos) y null si ese municipio no
+   tiene dato. */
+function nivelMunTarjetaMC(mi){
+  if (typeof puntosDia === "undefined" || !puntosDia || !puntosDia[diaSel]) return undefined;
+  const pts = puntosDia[diaSel][mi];
+  if (!pts) return null;
+  let mx = null;
+  for (const k of PEL_TIERRA){
+    const v = pts[k];
+    if (v && v.n != null && (mx === null || v.n > mx)) mx = v.n;
+  }
+  return mx === null ? 0 : mx;
+}
+/* Envuelve un texto en líneas: la primera puede arrancar más a la derecha
+   y ser más corta (tras el nombre del fenómeno); las demás van al margen
+   del bloque. Devuelve [{t, x}] con la abscisa de cada línea. Nunca parte
+   una palabra: si una palabra sola excediera el ancho, va sola en su
+   línea en vez de truncarse. */
+function envolverFlujoMC(ctx, texto, x1, w1, xR, wR){
+  const lineas = [];
+  let linea = "", x = x1, w = w1;
+  for (const p of (texto || "").split(/\s+/)){
+    if (!p) continue;
+    const prueba = linea ? linea + " " + p : p;
+    if (ctx.measureText(prueba).width > w && linea){
+      lineas.push({ t: linea, x: x });
+      linea = p; x = xR; w = wR;
+    } else linea = prueba;
+  }
+  if (linea) lineas.push({ t: linea, x: x });
+  return lineas;
+}
 function descargarTarjetaProvinciaMC(idx){
   if (!datosAvisosMC()) return;
   const p = PROVS[idx], r = resultados[diaSel][idx], m = r.max;
   const pr = principalDe(r.res);
-  const cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1350;
+
+  /* --- Municipios de la provincia: geometría y nivel de cada uno --- */
+  const mis = [];
+  if (typeof MUN_GEO !== "undefined")
+    for (let mi = 0; mi < MUNICIPIOS.length; mi++)
+      if (MUN_PROV[mi] === idx && MUN_GEO[mi] && MUN_GEO[mi].length) mis.push(mi);
+  let bbMun = null;
+  if (mis.length){
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const mi of mis) for (const poly of MUN_GEO[mi]) for (const ring of poly)
+      for (let i = 0; i < ring.length; i += 2){
+        const lo = ring[i], la = ring[i + 1];
+        if (lo < minX) minX = lo; if (lo > maxX) maxX = lo;
+        if (la < minY) minY = la; if (la > maxY) maxY = la;
+      }
+    bbMun = [minX, minY, maxX, maxY];
+  }
+  const nivMun = {};
+  for (const mi of mis){
+    const nm = nivelMunTarjetaMC(mi);
+    nivMun[mi] = (nm === undefined) ? m.n : nm;
+  }
+
+  /* --- Filas: SOLO fenómenos activos (nivel ≥ Amarillo); el mar entra
+     por costa. Orden: por nivel; dentro del nivel, el de PEL_ORDEN. --- */
+  const filas = [];
+  for (const k of PEL_ORDEN){
+    if (k === "oleaje" || k === "resaca"){
+      const mar = r.res.mar || {};
+      for (const cl of ["N", "S", "C"]){
+        const v = mar[cl] && mar[cl][k];
+        if (v && v.n != null && v.n >= 1)
+          filas.push({ nombre: PEL_NOM[k] + (cl === "C" ? "" : " · Costa " + (cl === "N" ? "norte" : "sur")), n: v.n, det: v.det || "", k: k, costa: cl });
+      }
+    } else {
+      const v = r.res[k];
+      if (v && v.n != null && v.n >= 1)
+        filas.push({ nombre: PEL_NOM[k], n: v.n, det: v.det || "", k: k, costa: null });
+    }
+  }
+  filas.sort((a, b) => b.n - a.n);
+  const recoTxt = (pr && pr.n != null && RECO[pr.clave] && RECO[pr.clave][pr.n]) ? RECO[pr.clave][pr.n] : "";
+
+  /* --- Medición previa (lienzo de medida): alturas exactas de cada
+     bloque para fijar la altura del lienzo ANTES de pintar. --- */
+  const mctx = document.createElement("canvas").getContext("2d");
+  mctx.font = "700 22px " + FUENTE_IMG;
+  let pw = 150;
+  for (const f of filas) pw = Math.max(pw, mctx.measureText(NIVELES[f.n].n).width + 34);
+  const xTxt = 64 + pw + 18, wTxt = 1016 - xTxt;
+  for (const f of filas){
+    mctx.font = "700 28px " + FUENTE_IMG;
+    f.nombreW = mctx.measureText(f.nombre).width;
+    mctx.font = "400 27px " + FUENTE_IMG;
+    let x1 = xTxt + f.nombreW + 14, w1 = 1016 - x1;
+    f.detBajo = w1 < 150;
+    if (f.detBajo){ x1 = xTxt; w1 = wTxt; }
+    f.lineas = f.det ? envolverFlujoMC(mctx, f.det, x1, w1, xTxt, wTxt) : [];
+    f.linTot = (f.detBajo ? 1 : 0) + Math.max(1, f.lineas.length);
+    f.alto = f.linTot * 35 + 18;
+    if (recoTxt && f.k === pr.clave && (f.costa || null) === (pr.costa || null)){
+      mctx.font = "400 25px " + FUENTE_IMG;
+      f.reco = lineasEnvueltasMC(mctx, recoTxt, 952);
+      f.alto += 18 + f.reco.length * 32 + 8;
+    }
+  }
+  const altoFilas = filas.length ? filas.reduce((s, f) => s + f.alto, 0) : 56;
+  /* Bloque de título: se mide con las mismas fuentes y envolturas con las
+     que se pinta abajo (las de la v37). */
+  mctx.font = "700 60px " + FUENTE_IMG;
+  const linNom = Math.max(1, lineasEnvueltasMC(mctx, p.nom, 952).length);
+  let yFin = 246 + linNom * 66 + ((pr && pr.n != null) ? 56 : 58);
+  if (pr && pr.n != null){
+    const det1 = (pr.det || "").split("·")[0].trim();
+    const fenTxt = PEL_NOM[pr.clave] + (pr.costa ? " (" + COSTA_TXT[pr.costa] + ") — " + NIVELES[pr.n].n + (det1 ? " · " + det1 : "") : (det1 ? " — " + det1 : ""));
+    mctx.font = "600 29px " + FUENTE_IMG;
+    yFin += 2 + Math.min(2, lineasEnvueltasMC(mctx, "Fenómeno principal: " + fenTxt, 952).length) * 36;
+  }
+  let tmp = null;
+  try { tmp = tempsProvinciaMC(idx); } catch(e){ tmp = null; }
+  if (tmp) yFin += 40;
+  /* Mapa: la provincia a ~920 px de ancho con su proporción real
+     (alto resultante entre 300 y 560 px). */
+  let mapH = 340;
+  if (bbMun){
+    const dLon = Math.max(0.05, bbMun[2] - bbMun[0]), dLat = Math.max(0.05, bbMun[3] - bbMun[1]);
+    mapH = Math.round(Math.min(560, Math.max(300, dLat * (920 / dLon))));
+  }
+  const mapY = yFin + 10;
+  const listY = mapY + mapH + 84;   /* pie del mapa (32) + aire (52) */
+  const filasY = listY + 24;
+  const H = Math.max(1350, filasY + altoFilas + 158);
+
+  /* --- Pintura --- */
+  const cv = document.createElement("canvas"); cv.width = 1080; cv.height = H;
   const ctx = cv.getContext("2d");
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, 1080, H);
   cabeceraImgMC(ctx, DIAS_TXT[diaSel] + " · " + fechaLarga(diaSel));
   let y = 246;
   ctx.fillStyle = "#17394d"; ctx.font = "700 60px " + FUENTE_IMG;
@@ -3004,98 +3144,96 @@ function descargarTarjetaProvinciaMC(idx){
     ctx.fillStyle = colorTextoNivel(pr.n); ctx.font = "700 44px " + FUENTE_IMG;
     ctx.fillText("Tipo de alerta: " + NIVELES[pr.n].largo, 64, y + 6); y += 56;
   }
-  if (pr){
+  if (pr && pr.n != null){
     const det1 = (pr.det || "").split("·")[0].trim();
     const fenTxt = PEL_NOM[pr.clave] + (pr.costa ? " (" + COSTA_TXT[pr.costa] + ") — " + NIVELES[pr.n].n + (det1 ? " · " + det1 : "") : (det1 ? " — " + det1 : ""));
     ctx.fillStyle = "#1c2b33"; ctx.font = "600 29px " + FUENTE_IMG;
     y = envolverMaxMC(ctx, "Fenómeno principal: " + fenTxt, 64, y + 2, 952, 36, 2);
   }
-  let tmp = null;
-  try { tmp = tempsProvinciaMC(idx); } catch(e){ tmp = null; }
   if (tmp){
     ctx.fillStyle = "#51626c"; ctx.font = "600 28px " + FUENTE_IMG;
     ctx.fillText("Temperaturas en la provincia: máx. " + Math.round(tmp.tmax) + " °C · mín. " + Math.round(tmp.tmin) + " °C", 64, y + 6);
     y += 40;
   }
-  const feat = CUBA_GEOJSON.features.find(f => f.properties.NAME_1 === p.id);
-  if (feat){
-    const boxY = y + 6, boxH = Math.max(160, 672 - boxY);
-    const proyP = hacerProy(bboxFeatures([feat]), 64, boxY, 952, boxH);
-    trazar(ctx, feat, proyP);
-    ctx.fillStyle = m.n === null ? SIN_DATOS.c : NIVELES[m.n].c;
-    ctx.fill();
-    ctx.lineWidth = 3; ctx.strokeStyle = "#ffffff"; ctx.stroke();
-    ctx.lineWidth = 1.2; ctx.strokeStyle = "rgba(8,48,79,.55)"; ctx.stroke();
-    trazarFranjasMC(ctx, proyP, idx);
-  }
-  y = 700;
-  ctx.fillStyle = "#0b3a57"; ctx.font = "700 30px " + FUENTE_IMG;
-  ctx.fillText("Peligros del día", 64, y);
-  const filasImg = [];
-  for (const k of PEL_ORDEN){
-    if (k === "oleaje" || k === "resaca"){
-      const mar = r.res.mar || {};
-      const cs = ["N", "S", "C"].filter(cl => mar[cl]);
-      if (!cs.length) filasImg.push({ nombre: PEL_NOM[k], v: r.res[k], k: k });
-      for (const cl of cs)
-        filasImg.push({ nombre: PEL_NOM[k] + (cl === "C" ? "" : " · Costa " + (cl === "N" ? "norte" : "sur")), v: mar[cl][k], k: k });
-    } else filasImg.push({ nombre: PEL_NOM[k], v: r.res[k], k: k });
-  }
-  ctx.font = "700 20px " + FUENTE_IMG;
-  let pw = 150;
-  for (const f of filasImg)
-    pw = Math.max(pw, ctx.measureText((!f.v || f.v.n === null) ? "Sin datos" : NIVELES[f.v.n].n).width + 28);
-  /* Reparto vertical de la zona de la lista (706→1196): primero se eligen
-     las recomendaciones que CABEN —la del fenómeno principal y las de
-     mayor nivel, una por fenómeno— y el paso de las filas se calcula con
-     el espacio restante (nunca menos de 32 px): la lista jamás invade el
-     pie, aunque la provincia tenga las dos costas desdobladas (13 filas)
-     y varios fenómenos activos a la vez. */
-  const ZONA_MC = 1196 - 714;
-  const candReco = filasImg.filter(f => f.v && f.v.n !== null && f.v.n >= 1 && RECO[f.k] && RECO[f.k][f.v.n]);
-  candReco.sort((a, b) => ((b.k === (pr && pr.clave) ? 1 : 0) - (a.k === (pr && pr.clave) ? 1 : 0)) || (b.v.n - a.v.n));
-  ctx.font = "400 21px " + FUENTE_IMG;
-  let recoSpace = 0;
-  const kConReco = {};
-  for (const f of candReco){
-    if (kConReco[f.k]) continue;
-    const lin = lineasEnvueltasMC(ctx, RECO[f.k][f.v.n], 952).slice(0, 2);
-    const coste = lin.length * 26 + 12;
-    if (Math.floor((ZONA_MC - recoSpace - coste) / filasImg.length) < 32) continue;
-    f.recoLin = lin; kConReco[f.k] = true; recoSpace += coste;
-  }
-  const paso = Math.min(46, Math.floor((ZONA_MC - recoSpace) / filasImg.length));
-  let ry = 714;
-  for (const f of filasImg){
-    const v = f.v;
-    const nv = (!v || v.n === null) ? SIN_DATOS : NIVELES[v.n];
-    ctx.fillStyle = nv.c; rr(ctx, 64, ry, pw, 34, 8); ctx.fill();
-    ctx.fillStyle = nv.t; ctx.font = "700 19px " + FUENTE_IMG; ctx.textAlign = "center";
-    ctx.fillText((!v || v.n === null) ? "Sin datos" : NIVELES[v.n].n, 64 + pw / 2, ry + 23);
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#1c2b33"; ctx.font = "600 25px " + FUENTE_IMG;
-    ctx.fillText(f.nombre, 64 + pw + 16, ry + 24);
-    const nw = ctx.measureText(f.nombre).width;
-    let det = v ? (v.det || "") : "";
-    ctx.fillStyle = "#51626c"; ctx.font = "400 22px " + FUENTE_IMG;
-    const maxDetW = 1016 - (64 + pw + 16 + nw + 12);
-    if (det && maxDetW > 60){
-      if (ctx.measureText(det).width > maxDetW){
-        while (det.length && ctx.measureText(det + "…").width > maxDetW) det = det.slice(0, -1);
-        det = det.trimEnd() + "…";
+  /* Mapa municipal: cada municipio con su color, bordes finos en blanco y
+     el contorno provincial marcado. SIN franjas costeras encima. */
+  if (mis.length && bbMun){
+    const proyM = hacerProy(bbMun, 64, mapY, 952, mapH);
+    for (const mi of mis){
+      const n = nivMun[mi];
+      ctx.beginPath();
+      for (const poly of MUN_GEO[mi]) for (const ring of poly){
+        for (let i = 0; i < ring.length; i += 2){
+          const q = proyM(ring[i], ring[i + 1]);
+          if (i === 0) ctx.moveTo(q[0], q[1]); else ctx.lineTo(q[0], q[1]);
+        }
+        ctx.closePath();
       }
-      ctx.fillText(det, 64 + pw + 16 + nw + 12, ry + 24);
+      ctx.fillStyle = n === null ? SIN_DATOS.c : NIVELES[n].c;
+      ctx.fill();
+      ctx.lineWidth = 1.3; ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.stroke();
     }
-    ry += paso;
-    if (f.recoLin){
-      ctx.fillStyle = "#51626c"; ctx.font = "400 21px " + FUENTE_IMG;
-      for (const t of f.recoLin){ ctx.fillText(t, 64, ry + 22); ry += 26; }
-      ry += 12;
+    const feat = CUBA_GEOJSON.features.find(f => f.properties.NAME_1 === p.id);
+    if (feat){
+      trazar(ctx, feat, proyM);
+      ctx.lineWidth = 3.2; ctx.strokeStyle = "#ffffff"; ctx.stroke();
+      trazar(ctx, feat, proyM);
+      ctx.lineWidth = 1.4; ctx.strokeStyle = "rgba(8,48,79,.55)"; ctx.stroke();
+    }
+  } else {
+    const feat = CUBA_GEOJSON.features.find(f => f.properties.NAME_1 === p.id);
+    if (feat){
+      const proyP = hacerProy(bboxFeatures([feat]), 64, mapY, 952, mapH);
+      trazar(ctx, feat, proyP);
+      ctx.fillStyle = m.n === null ? SIN_DATOS.c : NIVELES[m.n].c;
+      ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = "#ffffff"; ctx.stroke();
+      ctx.lineWidth = 1.2; ctx.strokeStyle = "rgba(8,48,79,.55)"; ctx.stroke();
     }
   }
-  pieImgMC(ctx);
+  ctx.fillStyle = "#51626c"; ctx.font = "400 23px " + FUENTE_IMG;
+  ctx.fillText(mis.length
+    ? "Cada municipio lleva el color de su fenómeno de tierra más significativo."
+    : "Mapa de la provincia con su nivel de tierra más significativo.", 64, mapY + mapH + 32);
+  /* Lista de fenómenos activos: detalle completo, sin truncar */
+  ctx.fillStyle = "#0b3a57"; ctx.font = "700 32px " + FUENTE_IMG;
+  ctx.fillText("Fenómenos activos", 64, listY);
+  let ry = filasY;
+  if (!filas.length){
+    ctx.fillStyle = "#1c2b33"; ctx.font = "600 28px " + FUENTE_IMG;
+    ctx.fillText("Sin fenómenos activos en esta provincia para " + DIAS_TXT[diaSel].toLowerCase() + ".", 64, ry + 30);
+  }
+  for (const f of filas){
+    const nv = NIVELES[f.n];
+    ctx.fillStyle = nv.c; rr(ctx, 64, ry, pw, 38, 8); ctx.fill();
+    ctx.fillStyle = nv.t; ctx.font = "700 22px " + FUENTE_IMG; ctx.textAlign = "center";
+    ctx.fillText(nv.n, 64 + pw / 2, ry + 27);
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#1c2b33"; ctx.font = "700 28px " + FUENTE_IMG;
+    ctx.fillText(f.nombre, xTxt, ry + 29);
+    ctx.fillStyle = "#51626c"; ctx.font = "400 27px " + FUENTE_IMG;
+    const salto = f.detBajo ? 1 : 0;
+    for (let i = 0; i < f.lineas.length; i++)
+      ctx.fillText(f.lineas[i].t, f.lineas[i].x, ry + 29 + 35 * (i + salto));
+    if (f.reco){
+      ctx.fillStyle = "#51626c"; ctx.font = "400 25px " + FUENTE_IMG;
+      let yy = ry + 29 + 35 * f.linTot + 18;
+      for (const t of f.reco){ ctx.fillText(t, 64, yy); yy += 32; }
+    }
+    ry += f.alto;
+  }
+  /* Pie: el mismo de pieImgMC, a la altura de este lienzo */
+  ctx.strokeStyle = "#d5e0e6"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(64, H - 132); ctx.lineTo(1016, H - 132); ctx.stroke();
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#0b3a57"; ctx.font = "700 29px " + FUENTE_IMG;
+  ctx.fillText(CREDITO, 540, H - 86);
+  ctx.fillStyle = "#5b7180"; ctx.font = "400 24px " + FUENTE_IMG;
+  ctx.fillText("meteorologia-cuba.com · cubamet.com", 540, H - 48);
+  ctx.textAlign = "left";
   descargarCanvas(cv, "avisos-meteorologia-cuba-" + slug(p.nom) + "-" + fechaCorta(diaSel) + ".png");
 }
+
 /* Botones v37 de la hoja de Avisos */
 function actualizarBtnProvMC(){
   const b = document.getElementById("btnDescProvMC");
@@ -6682,7 +6820,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v37",
+  version: "v38",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
