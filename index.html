@@ -177,6 +177,12 @@
   .pillMini { display:inline-block; width:32px; height:18px; border-radius:5px; border:1px solid rgba(0,0,0,.16); vertical-align:middle; }
   .btnImg { width:100%; border:none; background:#0f5d8f; color:#fff; border-radius:9px; padding:11px 12px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
   .btnImg:active { background:#08304f; }
+  /* v37: fila de descargas de Avisos, siempre visible sobre las pestañas */
+  .mc-dl-row { display:flex; flex-wrap:wrap; gap:8px; padding:10px 12px 0; }
+  .mc-dl-row .btnImg { flex:1 1 210px; width:auto; background:#0a2f47; }
+  .mc-dl-row .btnImg:active { background:#0d4066; }
+  .mc-dl-row .btnImg[disabled] { background:#9aa7ad; cursor:default; opacity:.75; }
+  .mc-dl-nota { padding:5px 14px 0; font-size:12px; color:#5b7180; }
 
   /* ===== lista de provincias ===== */
   #lista { margin:0 12px; background:#fff; border:1px solid #d5e0e6; border-radius:14px; overflow:hidden; }
@@ -741,6 +747,11 @@
     <div class="aviso"><b>Aviso importante:</b> producto informativo de Meteorología Cuba (LABMET) elaborado a partir de modelos numéricos. <b>Recuerde</b>: los avisos oficiales en Cuba los emiten el INSMET y la Defensa Civil.</div>
     <div class="credito">Creado por el meteorólogo MSc. JORGE FÉLIX HERNÁNDEZ CAPOTE</div>
     <div class="modelos" id="modelosHora"></div>
+    <div class="mc-dl-row">
+      <button class="btnImg" id="btnDescPaisMC" type="button">⬇ Descargar imagen · Cuba</button>
+      <button class="btnImg" id="btnDescProvMC" type="button" disabled>⬇ Descargar imagen · Provincia</button>
+    </div>
+    <div class="mc-dl-nota" id="mcDlNota">La imagen de una provincia se activa al tocarla en el mapa o en la lista de provincias.</div>
     <nav class="sheetTabs">
       <button data-sec="detalle" class="act" type="button">Detalle</button>
       <button data-sec="riesgos" type="button">Riesgos</button>
@@ -1988,6 +1999,7 @@ function cerrarDetalle(){
   provSel = null;
   if (capaProv) capaProv.setStyle(estiloProv); pintarFranjas(); pintarPuntos();
   mostrarDetalle();
+  actualizarBtnProvMC();
 }
 
 /* Municipios pintados por zona: en el modo de un peligro de tierra, las
@@ -2214,7 +2226,7 @@ function mostrarDetalle(){
   }
   document.getElementById("detalle").innerHTML = h;
   document.getElementById("btnCerrarDet").addEventListener("click", cerrarDetalle);
-  document.getElementById("btnImgProv").addEventListener("click", () => descargarTarjetaProvincia(idx));
+  document.getElementById("btnImgProv").addEventListener("click", () => descargarTarjetaProvinciaMC(idx));
   /* Las cabeceras de día de la mini-tabla también cambian el día seleccionado */
   document.querySelectorAll("#detalle th[data-dia]").forEach(th =>
     th.addEventListener("click", () => { const d = +th.dataset.dia; if (d !== diaSel){ diaSel = d; pintar(); rotarAnuncios(); } }));
@@ -2226,6 +2238,7 @@ function seleccionar(id, desdeMapa){
   if (capaProv) capaProv.setStyle(estiloProv); pintarFranjas(); pintarPuntos(); // borde blanco de selección en la provincia elegida + atenuar los puntos de las demás
   if (capasPorId[id]) capasPorId[id].bringToFront();
   mostrarDetalle();
+  actualizarBtnProvMC();
   /* SIN salto automático a la ficha (corrección de Jorge): la provincia se
      marca en el mapa y el usuario se queda ahí, viendo los fenómenos; la
      ficha se actualiza debajo del mapa para cuando baje a verla. Solo si la
@@ -2771,7 +2784,334 @@ function descargarResumen(){
   pieImg(ctx);
   descargarCanvas(cv, "resumen-avisos-cuba-" + fechaCorta(diaSel) + ".png");
 }
-document.getElementById("btnResumen").addEventListener("click", descargarResumen);
+document.getElementById("btnResumen").addEventListener("click", descargarResumenMC);
+/* ================= v37 · DESCARGAS CON EL SELLO DEL PORTAL =================
+   Tarjetas PNG de Avisos con la marca de Meteorología Cuba: cabecera
+   «METEOROLOGÍA CUBA · LABMET — Laboratorio Meteorológico», pastilla
+   dorada «Servicio independiente» y pie con el crédito de Jorge y los
+   dominios meteorologia-cuba.com · cubamet.com. Los botones visibles del
+   portal descargan estas versiones; las heredadas de Avisos Cuba quedan
+   en el código pero ya no cuelgan de ningún botón. Sin llamadas nuevas:
+   todo sale del estado del motor (resultados, diaSel, provSel, datosF) y
+   de la geometría del portal (CUBA_GEOJSON, COSTAS_GEO). Las temperaturas
+   de la tarjeta de provincia agregan los municipios de la provincia con
+   resumenMunDia, sobre datosF ya cargado. */
+function cabeceraImgMC(ctx, subtitulo){
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, 1080, 1350);
+  const grd = ctx.createLinearGradient(0, 0, 1080, 0);
+  grd.addColorStop(0, "#0a2f47"); grd.addColorStop(1, "#0d4066");
+  ctx.fillStyle = grd; ctx.fillRect(0, 0, 1080, 178);
+  ctx.fillStyle = "#ffc63a"; ctx.fillRect(0, 170, 1080, 8);
+  ctx.fillStyle = "#ffffff"; ctx.font = "700 52px " + FUENTE_IMG;
+  ctx.fillText("METEOROLOGÍA CUBA", 64, 66);
+  ctx.fillStyle = "#cfe6f5"; ctx.font = "400 29px " + FUENTE_IMG;
+  ctx.fillText("LABMET — Laboratorio Meteorológico", 64, 108);
+  ctx.fillStyle = "#ffffff"; ctx.font = "700 29px " + FUENTE_IMG;
+  ctx.fillText(subtitulo, 64, 152);
+  ctx.font = "700 21px " + FUENTE_IMG;
+  const pwMC = ctx.measureText("Servicio independiente").width + 36;
+  ctx.fillStyle = "#ffc63a"; rr(ctx, 1080 - 64 - pwMC, 28, pwMC, 44, 22); ctx.fill();
+  ctx.fillStyle = "#0a2f47"; ctx.textAlign = "center";
+  ctx.fillText("Servicio independiente", 1080 - 64 - pwMC / 2, 58);
+  ctx.textAlign = "left";
+}
+function pieImgMC(ctx){
+  ctx.strokeStyle = "#d5e0e6"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(64, 1218); ctx.lineTo(1016, 1218); ctx.stroke();
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#0b3a57"; ctx.font = "700 29px " + FUENTE_IMG;
+  ctx.fillText(CREDITO, 540, 1264);
+  ctx.fillStyle = "#5b7180"; ctx.font = "400 24px " + FUENTE_IMG;
+  ctx.fillText("meteorologia-cuba.com · cubamet.com", 540, 1302);
+  ctx.textAlign = "left";
+}
+/* Como envolver(), pero con tope de líneas y «…» si el texto no cabe. */
+function envolverMaxMC(ctx, texto, x, y, maxW, lh, maxLin){
+  const lineas = [];
+  let linea = "";
+  for (const p of (texto || "").split(" ")){
+    const prueba = linea ? linea + " " + p : p;
+    if (ctx.measureText(prueba).width > maxW && linea){ lineas.push(linea); linea = p; }
+    else linea = prueba;
+  }
+  if (linea) lineas.push(linea);
+  let yy = y;
+  const n = Math.min(lineas.length, maxLin);
+  for (let i = 0; i < n; i++){
+    let t = lineas[i];
+    if (i === n - 1 && lineas.length > maxLin){
+      while (t.length && ctx.measureText(t + "…").width > maxW) t = t.slice(0, -1);
+      t = t.trimEnd() + "…";
+    }
+    ctx.fillText(t, x, yy); yy += lh;
+  }
+  return yy;
+}
+/* Líneas que ocuparía un texto envuelto a maxW con la fuente actual (sin
+   dibujar): sirve para repartir el espacio vertical antes de pintar. */
+function lineasEnvueltasMC(ctx, texto, maxW){
+  const lineas = [];
+  let linea = "";
+  for (const p of (texto || "").split(" ")){
+    const prueba = linea ? linea + " " + p : p;
+    if (ctx.measureText(prueba).width > maxW && linea){ lineas.push(linea); linea = p; }
+    else linea = prueba;
+  }
+  if (linea) lineas.push(linea);
+  return lineas;
+}
+function datosAvisosMC(){
+  if (!resultados || !resultados[diaSel] || !datosF){
+    alert("Los datos de avisos aún se están cargando. Espera unos segundos y toca de nuevo.");
+    return false;
+  }
+  return true;
+}
+/* Nivel de un fenómeno en una provincia: el mar manda por su peor costa. */
+function nivelFenProvMC(r, k){
+  if (!r || !r.res) return null;
+  if (k === "oleaje" || k === "resaca"){
+    const mar = r.res.mar || {}; let v = null;
+    for (const cl of ["N", "S", "C"]){
+      const vv = mar[cl] && mar[cl][k];
+      if (vv && vv.n != null && (v === null || vv.n > v)) v = vv.n;
+    }
+    return v;
+  }
+  const vv = r.res[k];
+  return (vv && vv.n != null) ? vv.n : null;
+}
+/* Franjas costeras (mar por costa) sobre la proyección dada; soloIdx limita
+   el trazo a una provincia (tarjeta provincial), null = todo el país. */
+function trazarFranjasMC(ctx, proy, soloIdx){
+  ctx.lineWidth = 7; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  for (const f of CUBA_GEOJSON.features){
+    const idx = PROVS.findIndex(p => p.id === f.properties.NAME_1);
+    if (idx < 0 || (soloIdx != null && idx !== soloIdx)) continue;
+    const res = resultados[diaSel][idx].res;
+    const cg = COSTAS_GEO[f.properties.NAME_1] || {};
+    for (const cl of ["N", "S", "C"]){
+      const nMar = res.mar && res.mar[cl] ? nivelMarCosta(res.mar[cl]) : null;
+      ctx.strokeStyle = (nMar === null) ? SIN_DATOS.c : NIVELES[nMar].c;
+      for (const linea of (cg[cl] || [])){
+        ctx.beginPath();
+        linea.forEach((pt, i2) => { const q = proy(pt[0], pt[1]); if (i2) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); });
+        ctx.stroke();
+      }
+    }
+  }
+}
+/* Temperaturas del día en una provincia: extremos entre sus municipios,
+   desde datosF ya cargado (resumenMunDia). Sin llamadas nuevas. */
+function tempsProvinciaMC(idx){
+  let tmax = null, tmin = null;
+  for (let mi = 0; mi < MUNICIPIOS.length; mi++){
+    if (MUN_PROV[mi] !== idx) continue;
+    const f = resumenMunDia(mi, diaSel);
+    if (!f) continue;
+    if (tmax === null || f.tmax > tmax) tmax = f.tmax;
+    if (tmin === null || f.tmin < tmin) tmin = f.tmin;
+  }
+  return (tmax === null) ? null : { tmax: tmax, tmin: tmin };
+}
+/* Resumen del país con el sello del portal (1080×1350): mapa nacional con
+   el nivel más significativo de cada provincia, leyenda y la lista de
+   fenómenos activos (≥ Amarillo) con su nivel máximo y las provincias
+   donde se alcanza. */
+function descargarResumenMC(){
+  if (!datosAvisosMC()) return;
+  const cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1350;
+  const ctx = cv.getContext("2d");
+  cabeceraImgMC(ctx, DIAS_TXT[diaSel] + " · " + fechaLarga(diaSel));
+  ctx.fillStyle = "#0b3a57"; ctx.font = "700 46px " + FUENTE_IMG;
+  ctx.fillText("Avisos · Cuba", 64, 240);
+  const proy = hacerProy(bboxFeatures(CUBA_GEOJSON.features), 64, 262, 952, 392);
+  for (const f of CUBA_GEOJSON.features){
+    const idx = PROVS.findIndex(p => p.id === f.properties.NAME_1);
+    const n = idx >= 0 ? resultados[diaSel][idx].max.n : null;
+    trazar(ctx, f, proy);
+    ctx.fillStyle = n === null ? SIN_DATOS.c : NIVELES[n].c;
+    ctx.fill();
+    ctx.lineWidth = 1.4; ctx.strokeStyle = "#ffffff"; ctx.stroke();
+  }
+  trazarFranjasMC(ctx, proy, null);
+  let lx = 64, ly = 712;
+  ctx.font = "700 22px " + FUENTE_IMG;
+  for (const nv of NIVELES){
+    const w = ctx.measureText(nv.largo).width + 36;
+    if (lx + w > 1016){ lx = 64; ly += 54; }
+    ctx.fillStyle = nv.c; rr(ctx, lx, ly - 27, w, 39, 8); ctx.fill();
+    ctx.fillStyle = nv.t; ctx.textAlign = "center";
+    ctx.fillText(nv.largo, lx + w / 2, ly + 2);
+    ctx.textAlign = "left";
+    lx += w + 12;
+  }
+  let y = ly + 78;
+  ctx.fillStyle = "#0b3a57"; ctx.font = "700 34px " + FUENTE_IMG;
+  ctx.fillText("Fenómenos activos", 64, y);
+  const activos = [];
+  for (const k of PEL_ORDEN){
+    let mx = null; const provs = [];
+    for (let i = 0; i < PROVS.length; i++){
+      const v = nivelFenProvMC(resultados[diaSel][i], k);
+      if (v === null) continue;
+      if (mx === null || v > mx){ mx = v; provs.length = 0; provs.push(PROVS[i].nom); }
+      else if (v === mx) provs.push(PROVS[i].nom);
+    }
+    if (mx !== null && mx >= 1) activos.push({ k: k, n: mx, provs: provs });
+  }
+  activos.sort((a, b) => b.n - a.n);
+  if (!activos.length){
+    ctx.fillStyle = "#1c2b33"; ctx.font = "600 28px " + FUENTE_IMG;
+    envolverMaxMC(ctx, "Sin fenómenos en nivel de aviso: todo el país está en Verde.", 64, y + 42, 952, 36, 2);
+  } else {
+    for (const a of activos){
+      if (y + 40 > 1170){
+        if (y + 40 <= 1196){
+          ctx.fillStyle = "#51626c"; ctx.font = "400 24px " + FUENTE_IMG;
+          ctx.fillText("· Más detalle en la web", 104, y + 40);
+        }
+        break;
+      }
+      const lista = a.provs.length <= 4 ? a.provs.join(", ") : a.provs.slice(0, 4).join(", ") + " y " + (a.provs.length - 4) + " más";
+      ctx.fillStyle = NIVELES[a.n].c;
+      ctx.beginPath(); ctx.arc(80, y + 31, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 1; ctx.strokeStyle = "rgba(0,0,0,.25)"; ctx.stroke();
+      ctx.fillStyle = "#1c2b33"; ctx.font = "600 27px " + FUENTE_IMG;
+      y = envolverMaxMC(ctx, PEL_NOM[a.k] + " — " + NIVELES[a.n].largo + ": " + lista, 104, y + 40, 912, 34, 2) - 24;
+    }
+  }
+  pieImgMC(ctx);
+  descargarCanvas(cv, "avisos-meteorologia-cuba-" + fechaCorta(diaSel) + ".png");
+}
+/* Tarjeta de una provincia con el sello del portal (1080×1350): silueta
+   ampliada con su nivel de tierra y las franjas del mar, temperaturas del
+   día y la lista de peligros con nivel, valor y recomendación breve. */
+function descargarTarjetaProvinciaMC(idx){
+  if (!datosAvisosMC()) return;
+  const p = PROVS[idx], r = resultados[diaSel][idx], m = r.max;
+  const pr = principalDe(r.res);
+  const cv = document.createElement("canvas"); cv.width = 1080; cv.height = 1350;
+  const ctx = cv.getContext("2d");
+  cabeceraImgMC(ctx, DIAS_TXT[diaSel] + " · " + fechaLarga(diaSel));
+  let y = 246;
+  ctx.fillStyle = "#17394d"; ctx.font = "700 60px " + FUENTE_IMG;
+  y = envolver(ctx, p.nom, 64, y, 952, 66);
+  if (!pr || pr.n === null){
+    ctx.fillStyle = "#667077"; ctx.font = "700 42px " + FUENTE_IMG;
+    ctx.fillText("Tipo de alerta: Sin datos", 64, y + 4); y += 58;
+  } else {
+    ctx.fillStyle = colorTextoNivel(pr.n); ctx.font = "700 44px " + FUENTE_IMG;
+    ctx.fillText("Tipo de alerta: " + NIVELES[pr.n].largo, 64, y + 6); y += 56;
+  }
+  if (pr){
+    const det1 = (pr.det || "").split("·")[0].trim();
+    const fenTxt = PEL_NOM[pr.clave] + (pr.costa ? " (" + COSTA_TXT[pr.costa] + ") — " + NIVELES[pr.n].n + (det1 ? " · " + det1 : "") : (det1 ? " — " + det1 : ""));
+    ctx.fillStyle = "#1c2b33"; ctx.font = "600 29px " + FUENTE_IMG;
+    y = envolverMaxMC(ctx, "Fenómeno principal: " + fenTxt, 64, y + 2, 952, 36, 2);
+  }
+  let tmp = null;
+  try { tmp = tempsProvinciaMC(idx); } catch(e){ tmp = null; }
+  if (tmp){
+    ctx.fillStyle = "#51626c"; ctx.font = "600 28px " + FUENTE_IMG;
+    ctx.fillText("Temperaturas en la provincia: máx. " + Math.round(tmp.tmax) + " °C · mín. " + Math.round(tmp.tmin) + " °C", 64, y + 6);
+    y += 40;
+  }
+  const feat = CUBA_GEOJSON.features.find(f => f.properties.NAME_1 === p.id);
+  if (feat){
+    const boxY = y + 6, boxH = Math.max(160, 672 - boxY);
+    const proyP = hacerProy(bboxFeatures([feat]), 64, boxY, 952, boxH);
+    trazar(ctx, feat, proyP);
+    ctx.fillStyle = m.n === null ? SIN_DATOS.c : NIVELES[m.n].c;
+    ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = "#ffffff"; ctx.stroke();
+    ctx.lineWidth = 1.2; ctx.strokeStyle = "rgba(8,48,79,.55)"; ctx.stroke();
+    trazarFranjasMC(ctx, proyP, idx);
+  }
+  y = 700;
+  ctx.fillStyle = "#0b3a57"; ctx.font = "700 30px " + FUENTE_IMG;
+  ctx.fillText("Peligros del día", 64, y);
+  const filasImg = [];
+  for (const k of PEL_ORDEN){
+    if (k === "oleaje" || k === "resaca"){
+      const mar = r.res.mar || {};
+      const cs = ["N", "S", "C"].filter(cl => mar[cl]);
+      if (!cs.length) filasImg.push({ nombre: PEL_NOM[k], v: r.res[k], k: k });
+      for (const cl of cs)
+        filasImg.push({ nombre: PEL_NOM[k] + (cl === "C" ? "" : " · Costa " + (cl === "N" ? "norte" : "sur")), v: mar[cl][k], k: k });
+    } else filasImg.push({ nombre: PEL_NOM[k], v: r.res[k], k: k });
+  }
+  ctx.font = "700 20px " + FUENTE_IMG;
+  let pw = 150;
+  for (const f of filasImg)
+    pw = Math.max(pw, ctx.measureText((!f.v || f.v.n === null) ? "Sin datos" : NIVELES[f.v.n].n).width + 28);
+  /* Reparto vertical de la zona de la lista (706→1196): primero se eligen
+     las recomendaciones que CABEN —la del fenómeno principal y las de
+     mayor nivel, una por fenómeno— y el paso de las filas se calcula con
+     el espacio restante (nunca menos de 32 px): la lista jamás invade el
+     pie, aunque la provincia tenga las dos costas desdobladas (13 filas)
+     y varios fenómenos activos a la vez. */
+  const ZONA_MC = 1196 - 714;
+  const candReco = filasImg.filter(f => f.v && f.v.n !== null && f.v.n >= 1 && RECO[f.k] && RECO[f.k][f.v.n]);
+  candReco.sort((a, b) => ((b.k === (pr && pr.clave) ? 1 : 0) - (a.k === (pr && pr.clave) ? 1 : 0)) || (b.v.n - a.v.n));
+  ctx.font = "400 21px " + FUENTE_IMG;
+  let recoSpace = 0;
+  const kConReco = {};
+  for (const f of candReco){
+    if (kConReco[f.k]) continue;
+    const lin = lineasEnvueltasMC(ctx, RECO[f.k][f.v.n], 952).slice(0, 2);
+    const coste = lin.length * 26 + 12;
+    if (Math.floor((ZONA_MC - recoSpace - coste) / filasImg.length) < 32) continue;
+    f.recoLin = lin; kConReco[f.k] = true; recoSpace += coste;
+  }
+  const paso = Math.min(46, Math.floor((ZONA_MC - recoSpace) / filasImg.length));
+  let ry = 714;
+  for (const f of filasImg){
+    const v = f.v;
+    const nv = (!v || v.n === null) ? SIN_DATOS : NIVELES[v.n];
+    ctx.fillStyle = nv.c; rr(ctx, 64, ry, pw, 34, 8); ctx.fill();
+    ctx.fillStyle = nv.t; ctx.font = "700 19px " + FUENTE_IMG; ctx.textAlign = "center";
+    ctx.fillText((!v || v.n === null) ? "Sin datos" : NIVELES[v.n].n, 64 + pw / 2, ry + 23);
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#1c2b33"; ctx.font = "600 25px " + FUENTE_IMG;
+    ctx.fillText(f.nombre, 64 + pw + 16, ry + 24);
+    const nw = ctx.measureText(f.nombre).width;
+    let det = v ? (v.det || "") : "";
+    ctx.fillStyle = "#51626c"; ctx.font = "400 22px " + FUENTE_IMG;
+    const maxDetW = 1016 - (64 + pw + 16 + nw + 12);
+    if (det && maxDetW > 60){
+      if (ctx.measureText(det).width > maxDetW){
+        while (det.length && ctx.measureText(det + "…").width > maxDetW) det = det.slice(0, -1);
+        det = det.trimEnd() + "…";
+      }
+      ctx.fillText(det, 64 + pw + 16 + nw + 12, ry + 24);
+    }
+    ry += paso;
+    if (f.recoLin){
+      ctx.fillStyle = "#51626c"; ctx.font = "400 21px " + FUENTE_IMG;
+      for (const t of f.recoLin){ ctx.fillText(t, 64, ry + 22); ry += 26; }
+      ry += 12;
+    }
+  }
+  pieImgMC(ctx);
+  descargarCanvas(cv, "avisos-meteorologia-cuba-" + slug(p.nom) + "-" + fechaCorta(diaSel) + ".png");
+}
+/* Botones v37 de la hoja de Avisos */
+function actualizarBtnProvMC(){
+  const b = document.getElementById("btnDescProvMC");
+  if (!b) return;
+  const hay = PROVS.some(p => p.id === provSel);
+  b.disabled = !hay;
+  const nota = document.getElementById("mcDlNota");
+  if (nota) nota.style.display = hay ? "none" : "";
+}
+document.getElementById("btnDescPaisMC").addEventListener("click", descargarResumenMC);
+document.getElementById("btnDescProvMC").addEventListener("click", function(){
+  const idx = PROVS.findIndex(p => p.id === provSel);
+  if (idx >= 0) descargarTarjetaProvinciaMC(idx);
+});
+actualizarBtnProvMC();
+
 
 /* ================= ESTACIONES / AEROPUERTOS (METAR, apagado por defecto) =================
    Fuentes libres con CORS verificado (la app corre desde file://):
@@ -6342,7 +6682,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v36",
+  version: "v37",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
