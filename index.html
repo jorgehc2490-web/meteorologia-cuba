@@ -183,6 +183,11 @@
   .mc-dl-row .btnImg:active { background:#0d4066; }
   .mc-dl-row .btnImg[disabled] { background:#9aa7ad; cursor:default; opacity:.75; }
   .mc-dl-nota { padding:5px 14px 0; font-size:12px; color:#5b7180; }
+  .mc-dl-fen { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; }
+  .mc-dl-fen .btnImg { flex:1 1 210px; width:auto; background:#0f5d8f; }
+  .mc-dl-fen .btnImg:active { background:#08304f; }
+  .mc-dl-fen .btnImg[disabled] { background:#9aa7ad; cursor:default; opacity:.75; }
+  .mc-dl-fen-nota { flex:1 1 100%; font-size:12px; color:#5b7180; }
 
   /* ===== lista de provincias ===== */
   #lista { margin:0 12px; background:#fff; border:1px solid #d5e0e6; border-radius:14px; overflow:hidden; }
@@ -652,6 +657,7 @@
 <div class="mc-sec-cab-mapa" id="avisos"><h2>🗺️ Avisos · Mapa interactivo</h2><p>El semáforo de riesgo por municipio y provincia: 11 peligros con los niveles de Jorge, para hoy, mañana y pasado mañana. El peligro de incendios se calcula con el índice de sequía de Keetch–Byram (KBDI) de los últimos 90 días, combinado con la humedad mínima y el viento de cada día. Toque un fenómeno para verlo solo en el mapa; toque un municipio o una provincia para su detalle y recomendaciones.</p><div class="mc-obs-row"><span class="mc-obs-lbl">Observación:</span><span id="obsChips2"></span></div></div>
 <div class="dockChips fenCab"><button class="dockFlecha" id="chipsIzq" type="button" aria-label="Ver los fenómenos anteriores">‹</button><div id="chips"></div><button class="dockFlecha" id="chipsDer" type="button" aria-label="Ver los fenómenos siguientes">›</button></div>
   <div id="modoBar" class="oculto"></div>
+  <div id="dlFen" class="mc-dl-fen oculto"></div>
   <section class="hero">
     <div id="map"></div>
     <div class="topbar">
@@ -2156,6 +2162,7 @@ function pintar(){
   document.querySelectorAll("#lista .fila").forEach(el =>
     el.addEventListener("click", () => seleccionar(el.dataset.prov, false)));
 
+  actualizarDlFenMC();
   mostrarDetalle();
   if (capaProv) capaProv.setStyle(estiloProv); pintarFranjas(); // reaplica el resaltado de la provincia elegida
 }
@@ -2202,7 +2209,8 @@ function mostrarDetalle(){
     h += "</tr>";
   }
   h += "</table></div>";
-  h += '<div style="padding:8px 12px 12px"><button class="btnImg" id="btnImgProv">⬇ Descargar imagen de esta provincia</button></div>';
+  h += '<div style="padding:8px 12px 12px"><button class="btnImg" id="btnImgProv">⬇ Descargar imagen de esta provincia</button>' +
+    (modoPeligro ? '<button class="btnImg" id="btnImgProvFen" style="margin-top:8px">⬇ Descargar ' + p.nom + ' · ' + PEL_NOM[modoPeligro] + '</button>' : "") + '</div>';
   const filaPel = (nombreTxt, v, k) => {
     const vv = !v || v.n === null ? SIN_DATOS : NIVELES[v.n];
     const reco = (v && v.n >= 1 && RECO[k]) ? RECO[k][v.n] : null;
@@ -2227,6 +2235,8 @@ function mostrarDetalle(){
   document.getElementById("detalle").innerHTML = h;
   document.getElementById("btnCerrarDet").addEventListener("click", cerrarDetalle);
   document.getElementById("btnImgProv").addEventListener("click", () => descargarTarjetaProvinciaMC(idx));
+  const btnFenProv = document.getElementById("btnImgProvFen");
+  if (btnFenProv) btnFenProv.addEventListener("click", () => descargarFenProvinciaMC(idx, modoPeligro));
   /* Las cabeceras de día de la mini-tabla también cambian el día seleccionado */
   document.querySelectorAll("#detalle th[data-dia]").forEach(th =>
     th.addEventListener("click", () => { const d = +th.dataset.dia; if (d !== diaSel){ diaSel = d; pintar(); rotarAnuncios(); } }));
@@ -3234,6 +3244,399 @@ function descargarTarjetaProvinciaMC(idx){
   descargarCanvas(cv, "avisos-meteorologia-cuba-" + slug(p.nom) + "-" + fechaCorta(diaSel) + ".png");
 }
 
+/* ================= v39 · DESCARGAS POR FENÓMENO =================
+   Pedido de Jorge (2-nov-2026): además de las imágenes generales —país y
+   provincia, que quedan EXACTAMENTE como están—, al tocar un fenómeno
+   debe poder descargarse la imagen DE ESE FENÓMENO, en dos alcances:
+   · PAÍS: los 168 municipios pintados con el nivel DE ESE FENÓMENO
+     (incluido el Verde) y el detalle nacional (provincias afectadas con
+     sus valores). Aunque todo esté en Verde, la imagen sale igual.
+   · PROVINCIA (la seleccionada): sus municipios con el nivel de ese
+     fenómeno, su detalle (por zonas; el mar por costas, sin pintar
+     municipios con datos de mar) y la recomendación RECO de su nivel.
+   La niebla manda por su regla (el nivel provincial es el del INTERIOR,
+   el de res.niebla) y el ciclón pinta cada municipio por su distancia al
+   centro, como en el motor. Los botones viven en la fila #dlFen
+   —visible mientras hay un fenómeno activo (modoPeligro)— y en la ficha
+   de la provincia elegida. Misma identidad de las tarjetas v37/v38 y la
+   misma maquinaria de medición previa: detalle completo sin truncar y
+   lienzo de alto variable. Sin llamadas nuevas: todo sale del estado
+   del motor (puntosDia, resultados, diaSel, provSel). */
+
+function esFenMarMC(k){ return k === "oleaje" || k === "resaca"; }
+
+/* Nivel DE UN FENÓMENO en un municipio: el del punto del día (la misma
+   materia prima con la que la hoja pinta los municipios en el modo del
+   fenómeno). Si el punto no trae ese fenómeno, manda el nivel provincial
+   de ese fenómeno; undefined si aún no hay datos del día. */
+function nivelMunFenMC(mi, k){
+  if (typeof puntosDia !== "undefined" && puntosDia && puntosDia[diaSel]){
+    const pts = puntosDia[diaSel][mi];
+    if (!pts) return null;
+    const r = pts[k];
+    if (r) return (r.n != null) ? r.n : 0;
+  }
+  const rr2 = (typeof resultados !== "undefined" && resultados[diaSel]) ? resultados[diaSel][MUN_PROV[mi]] : null;
+  return rr2 ? nivelFenProvMC(rr2, k) : undefined;
+}
+
+/* Caja envolvente de los municipios (todos o solo los de una provincia). */
+function bboxMunicipiosMC(soloIdx){
+  if (typeof MUN_GEO === "undefined") return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, hay = false;
+  for (let mi = 0; mi < MUNICIPIOS.length; mi++){
+    if (soloIdx != null && MUN_PROV[mi] !== soloIdx) continue;
+    if (!MUN_GEO[mi]) continue;
+    for (const poly of MUN_GEO[mi]) for (const ring of poly)
+      for (let i = 0; i < ring.length; i += 2){
+        hay = true;
+        const lo = ring[i], la = ring[i + 1];
+        if (lo < minX) minX = lo; if (lo > maxX) maxX = lo;
+        if (la < minY) minY = la; if (la > maxY) maxY = la;
+      }
+  }
+  return hay ? [minX, minY, maxX, maxY] : null;
+}
+
+/* Pinta los municipios con su nivel del fenómeno k (incluido el Verde).
+   Devuelve false si falta la geometría municipal. */
+function pintarMunicipiosFenMC(ctx, proy, k, soloIdx){
+  if (typeof MUN_GEO === "undefined") return false;
+  let alguno = false;
+  for (let mi = 0; mi < MUNICIPIOS.length; mi++){
+    if (soloIdx != null && MUN_PROV[mi] !== soloIdx) continue;
+    if (!MUN_GEO[mi] || !MUN_GEO[mi].length) continue;
+    alguno = true;
+    const n = nivelMunFenMC(mi, k);
+    ctx.beginPath();
+    for (const poly of MUN_GEO[mi]) for (const ring of poly){
+      for (let i = 0; i < ring.length; i += 2){
+        const q = proy(ring[i], ring[i + 1]);
+        if (i === 0) ctx.moveTo(q[0], q[1]); else ctx.lineTo(q[0], q[1]);
+      }
+      ctx.closePath();
+    }
+    ctx.fillStyle = (n === null || n === undefined) ? SIN_DATOS.c : NIVELES[n].c;
+    ctx.fill();
+    ctx.lineWidth = soloIdx != null ? 1.3 : 0.8; ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.stroke();
+  }
+  return alguno;
+}
+
+/* Franjas costeras coloreadas SOLO por el fenómeno de mar k (la
+   trazarFranjasMC general usa el peor entre oleaje y resaca; esta, el
+   nivel del fenómeno tocado). */
+function trazarFranjasFenMC(ctx, proy, k, soloIdx){
+  ctx.lineWidth = 7; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  for (const f of CUBA_GEOJSON.features){
+    const idx = PROVS.findIndex(p => p.id === f.properties.NAME_1);
+    if (idx < 0 || (soloIdx != null && idx !== soloIdx)) continue;
+    const res = resultados[diaSel][idx].res;
+    const cg = COSTAS_GEO[f.properties.NAME_1] || {};
+    for (const cl of ["N", "S", "C"]){
+      const v = (res.mar && res.mar[cl]) ? res.mar[cl][k] : null;
+      const n = (v && v.n != null) ? v.n : null;
+      ctx.strokeStyle = (n === null) ? SIN_DATOS.c : NIVELES[n].c;
+      for (const linea of (cg[cl] || [])){
+        ctx.beginPath();
+        linea.forEach((pt, i2) => { const q = proy(pt[0], pt[1]); if (i2) ctx.lineTo(q[0], q[1]); else ctx.moveTo(q[0], q[1]); });
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+/* Pie de las tarjetas de alto variable: el de pieImgMC, a la altura del lienzo. */
+function pieVariableMC(ctx, H){
+  ctx.strokeStyle = "#d5e0e6"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(64, H - 132); ctx.lineTo(1016, H - 132); ctx.stroke();
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#0b3a57"; ctx.font = "700 29px " + FUENTE_IMG;
+  ctx.fillText(CREDITO, 540, H - 86);
+  ctx.fillStyle = "#5b7180"; ctx.font = "400 24px " + FUENTE_IMG;
+  ctx.fillText("meteorologia-cuba.com · cubamet.com", 540, H - 48);
+  ctx.textAlign = "left";
+}
+
+/* Filas pastilla+nombre+detalle en flujo, medidas antes de pintar: la
+   misma maquinaria visual de la tarjeta de provincia v38, compartida por
+   las dos tarjetas por fenómeno. filas: [{nombre, n, det, reco?}] */
+function medirFilasFenMC(mctx, filas){
+  mctx.font = "700 22px " + FUENTE_IMG;
+  let pw = 150;
+  for (const f of filas) pw = Math.max(pw, mctx.measureText(NIVELES[f.n].n).width + 34);
+  const xTxt = 64 + pw + 18, wTxt = 1016 - xTxt;
+  for (const f of filas){
+    mctx.font = "700 28px " + FUENTE_IMG;
+    f.nombreW = mctx.measureText(f.nombre).width;
+    mctx.font = "400 27px " + FUENTE_IMG;
+    let x1 = xTxt + f.nombreW + 14, w1 = 1016 - x1;
+    f.detBajo = w1 < 150;
+    if (f.detBajo){ x1 = xTxt; w1 = wTxt; }
+    f.lineas = f.det ? envolverFlujoMC(mctx, f.det, x1, w1, xTxt, wTxt) : [];
+    f.linTot = (f.detBajo ? 1 : 0) + Math.max(1, f.lineas.length);
+    f.alto = f.linTot * 35 + 18;
+    if (f.reco){
+      mctx.font = "400 25px " + FUENTE_IMG;
+      f.recoLin = lineasEnvueltasMC(mctx, f.reco, 952);
+      f.alto += 18 + f.recoLin.length * 32 + 8;
+    }
+  }
+  return { pw: pw, xTxt: xTxt };
+}
+function pintarFilasFenMC(ctx, filas, pw, xTxt, ry){
+  for (const f of filas){
+    const nv = NIVELES[f.n];
+    ctx.fillStyle = nv.c; rr(ctx, 64, ry, pw, 38, 8); ctx.fill();
+    ctx.fillStyle = nv.t; ctx.font = "700 22px " + FUENTE_IMG; ctx.textAlign = "center";
+    ctx.fillText(nv.n, 64 + pw / 2, ry + 27);
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#1c2b33"; ctx.font = "700 28px " + FUENTE_IMG;
+    ctx.fillText(f.nombre, xTxt, ry + 29);
+    ctx.fillStyle = "#51626c"; ctx.font = "400 27px " + FUENTE_IMG;
+    const salto = f.detBajo ? 1 : 0;
+    for (let i = 0; i < f.lineas.length; i++)
+      ctx.fillText(f.lineas[i].t, f.lineas[i].x, ry + 29 + 35 * (i + salto));
+    if (f.recoLin){
+      ctx.fillStyle = "#51626c"; ctx.font = "400 25px " + FUENTE_IMG;
+      let yy = ry + 29 + 35 * f.linTot + 18;
+      for (const t of f.recoLin){ ctx.fillText(t, 64, yy); yy += 32; }
+    }
+    ry += f.alto;
+  }
+  return ry;
+}
+
+/* Tarjeta PAÍS de un fenómeno: mapa nacional con cada municipio en su
+   nivel de ese fenómeno (incluido el Verde) y el detalle por provincias
+   (los fenómenos de mar, por provincias y costas con sus franjas). */
+function descargarFenPaisMC(k){
+  if (!datosAvisosMC()) return;
+  const esMar = esFenMarMC(k), nomFen = PEL_NOM[k];
+  let maxN = null;
+  const filas = [];
+  if (esMar){
+    for (let i = 0; i < PROVS.length; i++){
+      const mar = resultados[diaSel][i].res.mar || {};
+      for (const cl of ["N", "S", "C"]){
+        const v = mar[cl] && mar[cl][k];
+        if (!v || v.n == null) continue;
+        if (maxN === null || v.n > maxN) maxN = v.n;
+        if (v.n >= 1) filas.push({ nombre: PROVS[i].nom + (cl === "C" ? " · Costa" : " · Costa " + (cl === "N" ? "norte" : "sur")), n: v.n, det: v.det || "" });
+      }
+    }
+  } else {
+    for (let i = 0; i < PROVS.length; i++){
+      const v = nivelFenProvMC(resultados[diaSel][i], k);
+      if (v === null) continue;
+      if (maxN === null || v > maxN) maxN = v;
+      if (v >= 1) filas.push({ nombre: PROVS[i].nom, n: v, det: (resultados[diaSel][i].res[k] || {}).det || "" });
+    }
+  }
+  filas.sort((a, b) => b.n - a.n);
+  if (filas.length && maxN !== null && maxN >= 1 && RECO[k] && RECO[k][maxN]) filas[0].reco = RECO[k][maxN];
+
+  /* --- Medición previa: alturas exactas antes de pintar --- */
+  const mctx = document.createElement("canvas").getContext("2d");
+  const lay = medirFilasFenMC(mctx, filas);
+  const altoFilas = filas.length ? filas.reduce((s, f) => s + f.alto, 0) : 56;
+  mctx.font = "700 46px " + FUENTE_IMG;
+  const linTit = Math.max(1, lineasEnvueltasMC(mctx, nomFen, 952).length);
+  const yFin = 246 + linTit * 54 + 50;
+  const bbPais = esMar ? null : bboxMunicipiosMC(null);
+  let mapH = 392;
+  if (bbPais){
+    const dLon = Math.max(0.05, bbPais[2] - bbPais[0]), dLat = Math.max(0.05, bbPais[3] - bbPais[1]);
+    mapH = Math.round(Math.min(520, Math.max(320, dLat * (952 / dLon))));
+  }
+  const mapY = yFin + 10;
+  const listY = mapY + mapH + 84;
+  const filasY = listY + 24;
+  const H = Math.max(1350, filasY + altoFilas + 158);
+
+  /* --- Pintura --- */
+  const cv = document.createElement("canvas"); cv.width = 1080; cv.height = H;
+  const ctx = cv.getContext("2d");
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, 1080, H);
+  cabeceraImgMC(ctx, DIAS_TXT[diaSel] + " · " + fechaLarga(diaSel));
+  let y = 246;
+  ctx.fillStyle = "#0b3a57"; ctx.font = "700 46px " + FUENTE_IMG;
+  y = envolver(ctx, nomFen, 64, y, 952, 54);
+  ctx.font = "700 32px " + FUENTE_IMG;
+  if (maxN === null){ ctx.fillStyle = "#667077"; ctx.fillText("Sin datos del modelo para este fenómeno", 64, y + 4); }
+  else if (maxN === 0){ ctx.fillStyle = "#2e7d32"; ctx.fillText("Todo el país en Verde — sin avisos de este fenómeno", 64, y + 4); }
+  else { ctx.fillStyle = colorTextoNivel(maxN); ctx.fillText("Nivel máximo en el país: " + NIVELES[maxN].largo, 64, y + 4); }
+  y += 50;
+  if (esMar){
+    const proy = hacerProy(bboxFeatures(CUBA_GEOJSON.features), 64, mapY, 952, mapH);
+    for (const f of CUBA_GEOJSON.features){
+      trazar(ctx, f, proy);
+      ctx.fillStyle = "#eef3f6"; ctx.fill();
+      ctx.lineWidth = 1.2; ctx.strokeStyle = "#ffffff"; ctx.stroke();
+    }
+    trazarFranjasFenMC(ctx, proy, k, null);
+  } else if (bbPais){
+    const proy = hacerProy(bbPais, 64, mapY, 952, mapH);
+    if (!pintarMunicipiosFenMC(ctx, proy, k, null)){
+      for (const f of CUBA_GEOJSON.features){
+        const idx = PROVS.findIndex(p => p.id === f.properties.NAME_1);
+        const n = idx >= 0 ? nivelFenProvMC(resultados[diaSel][idx], k) : null;
+        trazar(ctx, f, proy);
+        ctx.fillStyle = (n === null || n === undefined) ? SIN_DATOS.c : NIVELES[n].c;
+        ctx.fill();
+        ctx.lineWidth = 1.2; ctx.strokeStyle = "#ffffff"; ctx.stroke();
+      }
+    }
+  }
+  ctx.fillStyle = "#51626c"; ctx.font = "400 23px " + FUENTE_IMG;
+  ctx.fillText(esMar
+    ? "El nivel del mar va por costa, en las franjas del litoral, no por municipios."
+    : "Cada municipio lleva el color de su nivel en este fenómeno.", 64, mapY + mapH + 32);
+  ctx.fillStyle = "#0b3a57"; ctx.font = "700 32px " + FUENTE_IMG;
+  ctx.fillText(esMar ? "Detalle por provincias y costas" : "Detalle por provincias", 64, listY);
+  if (!filas.length){
+    ctx.fillStyle = "#1c2b33"; ctx.font = "600 28px " + FUENTE_IMG;
+    ctx.fillText(maxN === null
+      ? "Sin datos del modelo para este fenómeno en " + DIAS_TXT[diaSel].toLowerCase() + "."
+      : "Ninguna provincia alcanza nivel de aviso en este fenómeno para " + DIAS_TXT[diaSel].toLowerCase() + ".", 64, filasY + 30);
+  }
+  pintarFilasFenMC(ctx, filas, lay.pw, lay.xTxt, filasY);
+  pieVariableMC(ctx, H);
+  descargarCanvas(cv, "avisos-meteorologia-cuba-" + slug(nomFen) + "-" + fechaCorta(diaSel) + ".png");
+}
+
+/* Tarjeta PROVINCIA de un fenómeno: la provincia en grande con sus
+   municipios en su nivel de ese fenómeno (el mar va por sus costas, en
+   las franjas, sin pintar municipios) y el detalle completo con su
+   recomendación. */
+function descargarFenProvinciaMC(idx, k){
+  if (!datosAvisosMC()) return;
+  const p = PROVS[idx], r = resultados[diaSel][idx];
+  const esMar = esFenMarMC(k), nomFen = PEL_NOM[k];
+  const nProv = nivelFenProvMC(r, k);
+
+  /* --- Filas de detalle --- */
+  const filas = [];
+  if (esMar){
+    const mar = r.res.mar || {};
+    for (const cl of ["N", "S", "C"]){
+      const v = mar[cl] && mar[cl][k];
+      if (v && v.n != null)
+        filas.push({ nombre: nomFen + (cl === "C" ? "" : " · Costa " + (cl === "N" ? "norte" : "sur")), n: v.n, det: v.det || "" });
+    }
+    filas.sort((a, b) => b.n - a.n);
+  } else {
+    const v = r.res[k];
+    if (v && v.n != null){
+      let det = v.det || "";
+      if (!det && v.n === 0) det = "Sin aviso de este fenómeno en esta provincia para " + DIAS_TXT[diaSel].toLowerCase() + ": todo en Verde.";
+      filas.push({ nombre: nomFen, n: v.n, det: det });
+    }
+  }
+  if (filas.length && nProv !== null && nProv >= 1 && RECO[k] && RECO[k][nProv]) filas[0].reco = RECO[k][nProv];
+
+  /* --- Geometría de los municipios de la provincia --- */
+  const bbMun = bboxMunicipiosMC(idx);
+
+  /* --- Medición previa --- */
+  const mctx = document.createElement("canvas").getContext("2d");
+  const lay = medirFilasFenMC(mctx, filas);
+  const altoFilas = filas.length ? filas.reduce((s, f) => s + f.alto, 0) : 56;
+  mctx.font = "700 60px " + FUENTE_IMG;
+  const linNom = Math.max(1, lineasEnvueltasMC(mctx, p.nom, 952).length);
+  const yFin = 246 + linNom * 66 + 56;
+  let mapH = 340;
+  if (bbMun){
+    const dLon = Math.max(0.05, bbMun[2] - bbMun[0]), dLat = Math.max(0.05, bbMun[3] - bbMun[1]);
+    mapH = Math.round(Math.min(560, Math.max(300, dLat * (920 / dLon))));
+  }
+  const mapY = yFin + 10;
+  const listY = mapY + mapH + 84;
+  const filasY = listY + 24;
+  const H = Math.max(1350, filasY + altoFilas + 158);
+
+  /* --- Pintura --- */
+  const cv = document.createElement("canvas"); cv.width = 1080; cv.height = H;
+  const ctx = cv.getContext("2d");
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, 1080, H);
+  cabeceraImgMC(ctx, DIAS_TXT[diaSel] + " · " + fechaLarga(diaSel));
+  let y = 246;
+  ctx.fillStyle = "#17394d"; ctx.font = "700 60px " + FUENTE_IMG;
+  y = envolver(ctx, p.nom, 64, y, 952, 66);
+  if (nProv === null || nProv === undefined){
+    ctx.fillStyle = "#667077"; ctx.font = "700 42px " + FUENTE_IMG;
+    ctx.fillText(nomFen + ": Sin datos", 64, y + 4);
+  } else {
+    ctx.fillStyle = colorTextoNivel(nProv); ctx.font = "700 44px " + FUENTE_IMG;
+    ctx.fillText(nomFen + " — " + NIVELES[nProv].largo, 64, y + 6);
+  }
+  y += 56;
+  const feat = CUBA_GEOJSON.features.find(f => f.properties.NAME_1 === p.id);
+  if (esMar){
+    if (feat){
+      const proyP = hacerProy(bboxFeatures([feat]), 64, mapY, 952, mapH);
+      trazar(ctx, feat, proyP);
+      ctx.fillStyle = "#eef3f6"; ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = "#ffffff"; ctx.stroke();
+      trazar(ctx, feat, proyP);
+      ctx.lineWidth = 1.2; ctx.strokeStyle = "rgba(8,48,79,.55)"; ctx.stroke();
+      trazarFranjasFenMC(ctx, proyP, k, idx);
+    }
+  } else if (bbMun){
+    const proyM = hacerProy(bbMun, 64, mapY, 952, mapH);
+    if (!pintarMunicipiosFenMC(ctx, proyM, k, idx) && feat){
+      trazar(ctx, feat, proyM);
+      ctx.fillStyle = (nProv === null || nProv === undefined) ? SIN_DATOS.c : NIVELES[nProv].c;
+      ctx.fill();
+    }
+    if (feat){
+      trazar(ctx, feat, proyM);
+      ctx.lineWidth = 3.2; ctx.strokeStyle = "#ffffff"; ctx.stroke();
+      trazar(ctx, feat, proyM);
+      ctx.lineWidth = 1.4; ctx.strokeStyle = "rgba(8,48,79,.55)"; ctx.stroke();
+    }
+  } else if (feat){
+    const proyP = hacerProy(bboxFeatures([feat]), 64, mapY, 952, mapH);
+    trazar(ctx, feat, proyP);
+    ctx.fillStyle = (nProv === null || nProv === undefined) ? SIN_DATOS.c : NIVELES[nProv].c;
+    ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = "#ffffff"; ctx.stroke();
+    ctx.lineWidth = 1.2; ctx.strokeStyle = "rgba(8,48,79,.55)"; ctx.stroke();
+  }
+  ctx.fillStyle = "#51626c"; ctx.font = "400 23px " + FUENTE_IMG;
+  ctx.fillText(esMar
+    ? "El nivel del mar va por costa, en las franjas del litoral, no por municipios."
+    : "Cada municipio lleva el color de su nivel en este fenómeno.", 64, mapY + mapH + 32);
+  ctx.fillStyle = "#0b3a57"; ctx.font = "700 32px " + FUENTE_IMG;
+  ctx.fillText("Detalle del fenómeno", 64, listY);
+  if (!filas.length){
+    ctx.fillStyle = "#1c2b33"; ctx.font = "600 28px " + FUENTE_IMG;
+    ctx.fillText("Sin datos del modelo para este fenómeno en esta provincia.", 64, filasY + 30);
+  }
+  pintarFilasFenMC(ctx, filas, lay.pw, lay.xTxt, filasY);
+  pieVariableMC(ctx, H);
+  descargarCanvas(cv, "avisos-meteorologia-cuba-" + slug(p.nom) + "-" + slug(nomFen) + "-" + fechaCorta(diaSel) + ".png");
+}
+
+/* Fila de descargas por fenómeno, bajo la barra del modo peligro: se
+   reconstruye en cada pintado (pintar, seleccionar, cerrar detalle) para
+   que el botón de provincia siga siempre a la provincia elegida. */
+function actualizarDlFenMC(){
+  const d = document.getElementById("dlFen");
+  if (!d) return;
+  if (!modoPeligro){ d.classList.add("oculto"); d.innerHTML = ""; return; }
+  const k = modoPeligro;
+  const idx = PROVS.findIndex(p2 => p2.id === provSel);
+  d.classList.remove("oculto");
+  d.innerHTML =
+    '<button class="btnImg" id="btnDlFenPaisMC" type="button">⬇ Descargar Cuba · ' + PEL_NOM[k] + '</button>' +
+    '<button class="btnImg" id="btnDlFenProvMC" type="button"' + (idx < 0 ? " disabled" : "") + '>⬇ Descargar ' + (idx >= 0 ? PROVS[idx].nom : "provincia") + ' · ' + PEL_NOM[k] + '</button>' +
+    (idx < 0 ? '<div class="mc-dl-fen-nota">La imagen por provincia se activa al tocar una provincia en el mapa o en la lista.</div>' : "");
+  document.getElementById("btnDlFenPaisMC").addEventListener("click", () => descargarFenPaisMC(k));
+  const bp = document.getElementById("btnDlFenProvMC");
+  if (bp && idx >= 0) bp.addEventListener("click", () => descargarFenProvinciaMC(idx, k));
+}
+
 /* Botones v37 de la hoja de Avisos */
 function actualizarBtnProvMC(){
   const b = document.getElementById("btnDescProvMC");
@@ -3242,6 +3645,7 @@ function actualizarBtnProvMC(){
   b.disabled = !hay;
   const nota = document.getElementById("mcDlNota");
   if (nota) nota.style.display = hay ? "none" : "";
+  actualizarDlFenMC();
 }
 document.getElementById("btnDescPaisMC").addEventListener("click", descargarResumenMC);
 document.getElementById("btnDescProvMC").addEventListener("click", function(){
@@ -4398,6 +4802,28 @@ function reajustarMapaAvisos(){
 /* v27: mapa de acumulado de lluvia en 24 h por municipio. Lee el m24 que
    el motor de avisos ya calculó para cada municipio (puntosDia): no hace
    ninguna llamada nueva. Si el motor aún no terminó, reintenta. */
+/* v39: encuadre FIJO de Cuba para los mapas de Análisis (acumulado e
+   IMERG), que abrían con el mundo entero. Eran los únicos mapas del
+   portal creados sin setView: solo un fitBounds al crear y un único
+   reencuadre a los 80 ms al entrar; si esa medición cae con el
+   contenedor aún en 0 (sección recién mostrada, teléfono lento),
+   Leaflet deja el mapa en zoom 0 y ya nada lo recupera. Ahora: vista
+   inicial de Cuba desde la creación (como Satélite y Radares),
+   creación aplazada si el contenedor mide 0, doble reencuadre al
+   entrar (80 y 450 ms, como el seguro de 400 ms de Avisos) y suelo
+   minZoom/maxBounds: la vista mundial queda imposible. */
+var MC_CUBA_BOUNDS = [[19.2, -85.7], [24.0, -73.4]];
+var MC_CUBA_MAXBOUNDS = [[15.5, -91.0], [27.5, -67.0]];
+function mcMapaCubaOpts(){
+  return { scrollWheelZoom: false, zoomSnap: 0.25, zoomDelta: 0.5,
+    minZoom: 4.5, maxBounds: MC_CUBA_MAXBOUNDS, maxBoundsViscosity: 0.7 };
+}
+function mcEncuadrarCuba(m){
+  if (!m) return;
+  try { m.invalidateSize(); } catch(e){}
+  try { m.fitBounds(MC_CUBA_BOUNDS); }
+  catch(e){ try { m.setView([21.6, -79.3], 6); } catch(e2){} }
+}
 var acuMapa = null, acuCapa = null, acuDia = 0, acuReintentos = 0;
 var ACU_ESCALA = [[50, "#7e2a8e"], [35, "#5b5bd6"], [20, "#1f6fb2"], [10, "#3d8bc2"], [5, "#6fb3e0"], [1, "#a8d8ea"], [0, "#e8f1f6"]];
 function acuColor(mm){
@@ -4441,8 +4867,14 @@ var imergMapa = null;
 async function initImerg(){
   var box = document.getElementById("mapImerg");
   if (!box || typeof L === "undefined" || imergMapa) return;
-  imergMapa = L.map("mapImerg", { scrollWheelZoom: false, zoomSnap: 0.25, zoomDelta: 0.5 });
-  imergMapa.fitBounds([[18.9, -87.4], [25.1, -71.6]]);
+  if (box.clientWidth === 0 || box.clientHeight === 0){
+    /* v39: contenedor aún sin tamaño (la sección acaba de mostrarse):
+       crear el mapa ahora lo dejaría en zoom 0, el mundo entero. */
+    if ((initImerg._re || 0) < 12){ initImerg._re = (initImerg._re || 0) + 1; setTimeout(initImerg, 250); }
+    return;
+  }
+  imergMapa = L.map("mapImerg", mcMapaCubaOpts()).setView([21.6, -79.3], 6);
+  mcEncuadrarCuba(imergMapa);
   L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 12, attribution: "© Esri" }).addTo(imergMapa);
   try { if (typeof CUBA_GEOJSON !== "undefined" && CUBA_GEOJSON) L.geoJSON(CUBA_GEOJSON, { style: { color: "#26455a", weight: 1.2, fill: false }, interactive: false }).addTo(imergMapa); } catch(e){}
   try {
@@ -4467,9 +4899,18 @@ async function initImerg(){
 function initAnalisis(){
   var box = document.getElementById("mapAcu");
   if (!box || typeof L === "undefined") return;
+  if (!acuMapa && (box.clientWidth === 0 || box.clientHeight === 0)){
+    /* v39: contenedor aún sin tamaño (la sección acaba de mostrarse en
+       un teléfono lento): crear el mapa ahora lo dejaría en zoom 0, el
+       mundo entero, y el reencuadre único de los 80 ms podía no bastar.
+       Se reintenta hasta que el contenedor mida (máx. ~3 s). */
+    if ((initAnalisis._re || 0) < 12){ initAnalisis._re = (initAnalisis._re || 0) + 1; setTimeout(initAnalisis, 250); }
+    initImerg();
+    return;
+  }
   if (!acuMapa){
-    acuMapa = L.map("mapAcu", { scrollWheelZoom: false, zoomSnap: 0.25, zoomDelta: 0.5 });
-    acuMapa.fitBounds([[18.9, -87.4], [25.1, -71.6]]);
+    acuMapa = L.map("mapAcu", mcMapaCubaOpts()).setView([21.6, -79.3], 6);
+    mcEncuadrarCuba(acuMapa);
     L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 12, attribution: "© Esri" }).addTo(acuMapa);
     document.querySelectorAll("#acuTabs button").forEach(function(b){
       b.addEventListener("click", function(){
@@ -4483,8 +4924,11 @@ function initAnalisis(){
   initImerg();
 }
 function reajustarMapaAcu(){
-  try { if (acuMapa){ acuMapa.invalidateSize(); acuMapa.fitBounds([[18.9, -87.4], [25.1, -71.6]]); } } catch(e){}
-  try { if (imergMapa){ imergMapa.invalidateSize(); imergMapa.fitBounds([[18.9, -87.4], [25.1, -71.6]]); } } catch(e){}
+  /* v39: reencuadre con la extensión de Cuba (antes se repetía la
+     ventana ancha del Caribe) y con la red minZoom/maxBounds puesta en
+     la creación: ninguno de los dos mapas puede quedar mundial. */
+  try { mcEncuadrarCuba(acuMapa); } catch(e){}
+  try { mcEncuadrarCuba(imergMapa); } catch(e){}
 }
 function reajustarMapaModelos(){
   /* v25: reencuadre al entrar en Modelos. El fitBounds de la creación no
@@ -4522,7 +4966,7 @@ function mostrarVista(n, sinScroll){
   if (n === "avisos") setTimeout(reajustarMapaAvisos, 80);
   if (n === "ciclones") setTimeout(reajustarMapaCiclones, 80);
   if (n === "modelos") setTimeout(reajustarMapaModelos, 80);
-  if (n === "analisis") setTimeout(reajustarMapaAcu, 80);
+  if (n === "analisis"){ setTimeout(reajustarMapaAcu, 80); setTimeout(reajustarMapaAcu, 450); }
   if (!sinScroll){
     var cab = document.querySelector("header.mc-head");
     if (cab) try { cab.scrollIntoView({ block: "start" }); } catch(e){}
@@ -6820,7 +7264,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v38",
+  version: "v39",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
