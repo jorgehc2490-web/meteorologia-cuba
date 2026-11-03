@@ -688,6 +688,7 @@
     <button data-dia="2">Pasado mañana<small></small></button>
   </div>
     </div>
+    <div id="edicionSello" style="font-size:12.5px;color:#5b7183;padding:3px 2px 0;text-align:right"></div>
     <div class="mapBtns">
       <button class="mapBtn zoomBtn" id="btnZoomMas" type="button" aria-label="Acercar el mapa">+</button>
       <button class="mapBtn zoomBtn" id="btnZoomMenos" type="button" aria-label="Alejar el mapa">−</button>
@@ -1678,8 +1679,10 @@ function mc5Sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
    que la interfaz explique la causa real. */
 async function mc5FetchJSON(url, opts){
   opts = opts || {};
-  const hit = mc5Get(url);
-  if (hit !== null && hit !== undefined) return hit;
+  if (!opts.forzar){
+    const hit = mc5Get(url);
+    if (hit !== null && hit !== undefined) return hit;
+  }
   const esperas = opts.esperas || [0, 6000, 20000, 45000];
   let lastErr = null;
   for (let i = 0; i < esperas.length; i++){
@@ -1704,6 +1707,249 @@ function mc5Reintentar(){
   cargar();
 }
 
+/* ================= EDICIONES 00Z/12Z (v42, 2026-11-03) =================
+   Decisión de Jorge (3-nov-2026): los avisos dejan de recalcularse con
+   «lo último que haya» del servicio (los niveles saltaban con cada
+   corrida intermedia 06Z/18Z) y pasan a trabajar por EDICIONES ancladas
+   a las dos corridas con la red completa de sondeos:
+   · Edición 00Z: vigente desde las 08:00 UTC (00Z + 8 h; el ciclo 00Z
+     está completo en el servicio, ECMWF incluido, hacia las 07:00 UTC).
+   · Edición 12Z: vigente desde las 20:00 UTC (12Z + 8 h).
+   Las puertas son UTC fijas todo el año: en hora de Cuba/Florida caen a
+   las 3:00–4:00 a. m. y 3:00–4:00 p. m. según EST/EDT, siempre DESPUÉS
+   de que el ciclo esté completo.
+   Mecanismo: PUERTA POR EDICIÓN sobre una caché propia (localStorage,
+   prefijo edm1|). La primera visita de cada edición descarga los datos
+   una vez (forzando la red, sin la caché mc5 de 25 min) y los guarda
+   con la clave de la edición; las demás visitas de la misma edición
+   leen lo guardado y no piden nada. No se fija la corrida con la
+   Single Runs API de Open-Meteo porque esa API sirve UN solo modelo
+   por petición y no cubre la API marina: cambiaría la mezcla
+   verificada del motor (best_match) y dejaría fuera el oleaje. La
+   puerta garantiza estabilidad para el visitante dentro de la
+   edición; no garantiza que cada modelo interno sea bit a bit el de
+   un único ciclo (la mezcla puede traer alguna corrida regional
+   reciente en el momento de la primera descarga de la edición).
+   VÁLVULA: con una edición ya guardada, como máximo cada ~60 min se
+   hace UNA comprobación fresca; si algún fenómeno sube ≥2 niveles en
+   alguna provincia o aparece un Rojo/Morado nuevo, lo fresco pasa a
+   ser la base vigente y el sello dice «Actualización». Si el servicio
+   falla (429 o red), se sirve lo guardado, sin reintentos en bucle.
+   REPARACIÓN DE HUECOS: si al guardar la edición faltó el mar, la
+   serie KBDI o el parte de ciclones (llegaron nulos), en visitas
+   siguientes se intenta completar SOLO esa pieza, sin cambiar sello
+   ni edición. Alcance: SOLO el motor de avisos (cargar()); las demás
+   secciones siguen con su caché mc5 como hasta ahora. */
+const ED_PRE = "edm1|";
+const ED_VALVULA_MS = 60 * 60 * 1000;
+let edStoreOk = null;
+const edMem = {};
+let edErrorFresco = null;
+function edStore(){
+  if (edStoreOk !== null) return edStoreOk ? window.localStorage : null;
+  try {
+    const st = window.localStorage;
+    st.setItem("__ed__", "1"); st.removeItem("__ed__");
+    edStoreOk = true; return st;
+  } catch(e){ edStoreOk = false; return null; }
+}
+function edIsoUTC(y, m, d){ return y + "-" + String(m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0"); }
+function edicionPara(ms){
+  const d = new Date(ms);
+  const y = d.getUTCFullYear(), mo = d.getUTCMonth(), da = d.getUTCDate();
+  const t08 = Date.UTC(y, mo, da, 8), t20 = Date.UTC(y, mo, da, 20);
+  if (ms >= t20) return { ciclo: "12Z", fecha: edIsoUTC(y, mo, da), inicio: t20, clave: "E" + edIsoUTC(y, mo, da) + "-12Z" };
+  if (ms >= t08) return { ciclo: "00Z", fecha: edIsoUTC(y, mo, da), inicio: t08, clave: "E" + edIsoUTC(y, mo, da) + "-00Z" };
+  const ay = new Date(Date.UTC(y, mo, da) - 86400000);
+  const fy = edIsoUTC(ay.getUTCFullYear(), ay.getUTCMonth(), ay.getUTCDate());
+  return { ciclo: "12Z", fecha: fy, inicio: t20 - 86400000, clave: "E" + fy + "-12Z" };
+}
+window.__edicionActual = function(ms){
+  const e = edicionPara(ms == null ? Date.now() : +ms);
+  return { ciclo: e.ciclo, fecha: e.fecha, clave: e.clave, inicioUTC: new Date(e.inicio).toISOString() };
+};
+function edLeer(clave){
+  if (edMem[clave]) return edMem[clave];
+  const st = edStore(); if (!st) return null;
+  try { const raw = st.getItem(ED_PRE + clave); return raw ? JSON.parse(raw) : null; } catch(e){ return null; }
+}
+function edGuardar(clave, reg){
+  edMem[clave] = reg;
+  const st = edStore(); if (!st) return;
+  const k = ED_PRE + clave;
+  const txt = JSON.stringify(reg);
+  try { st.setItem(k, txt); return; } catch(e){}
+  try {
+    const viejas = [];
+    for (let i = 0; i < st.length; i++){ const kk = st.key(i); if (kk && kk.indexOf(ED_PRE) === 0 && kk.indexOf(clave) === -1) viejas.push(kk); }
+    viejas.forEach(kk => st.removeItem(kk));
+    st.setItem(k, txt);
+  } catch(e2){ /* sin persistencia: la edición vive en memoria esta sesión */ }
+}
+function edPurgar(clave){
+  const st = edStore(); if (!st) return;
+  try {
+    const viejas = [];
+    for (let i = 0; i < st.length; i++){ const kk = st.key(i); if (kk && kk.indexOf(ED_PRE) === 0 && kk.indexOf(clave) === -1) viejas.push(kk); }
+    viejas.forEach(kk => st.removeItem(kk));
+  } catch(e){}
+}
+/* Matriz compacta de niveles [día][provincia][fenómeno] para comparar
+   ediciones y disparar la válvula (−1 = sin datos). */
+function edMatriz(resultados){
+  const out = [];
+  for (let d = 0; d < 3; d++){
+    const dia = resultados[d] || [];
+    out.push(dia.map(pr => {
+      const o = {};
+      for (const k of PEL_ORDEN){ const v = pr && pr.res ? pr.res[k] : null; o[k] = (v && v.n != null) ? v.n : -1; }
+      return o;
+    }));
+  }
+  return out;
+}
+function edCambioImportante(a, b){
+  if (!a || !b) return false;
+  for (let d = 0; d < b.length; d++){
+    const bd = b[d] || [], ad = a[d] || [];
+    for (let p = 0; p < bd.length; p++){
+      for (const k of PEL_ORDEN){
+        const x = ad[p] && ad[p][k] != null ? ad[p][k] : -1;
+        const y = bd[p][k];
+        if (y - x >= 2 || (y >= 3 && x < 3)) return true;
+      }
+    }
+  }
+  return false;
+}
+function edSelloTexto(paq){
+  const hora = new Date(paq.t).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" });
+  return paq.estado === "actualizacion" ? "Actualización · " + hora : "Edición " + paq.ciclo + " · actualizado " + hora;
+}
+function pintarSelloEdicion(paq){
+  const el = document.getElementById("edicionSello");
+  if (el) el.textContent = edSelloTexto(paq);
+}
+function edParseNHC(j){
+  const storms = {};
+  for (const f of (j.features || [])){
+    const a = f.attributes;
+    if (a.lat == null || a.lon == null) continue;
+    const key = (a.stormnum || a.stormname || "?") + "";
+    if (!storms[key]) storms[key] = { name: a.stormname || "Ciclón", pts: [], kt: 0 };
+    storms[key].pts.push({ lat: a.lat, lon: a.lon });
+    if ((a.tau === 0 || a.tau == null) && a.maxwind != null) storms[key].kt = Math.max(storms[key].kt, a.maxwind);
+    if (a.maxwind != null && storms[key].kt === 0) storms[key].kt = a.maxwind;
+  }
+  return Object.values(storms).filter(s => s.pts.length && s.kt > 0);
+}
+/* Descarga fresca de las piezas del motor, FORZANDO la red (sin la
+   caché mc5 de 25 min) y con el arranque escalonado de la v5. Devuelve
+   {F, M, KB, N} o null si el pronóstico falla tras los reintentos de
+   mc5FetchJSON; mar, KBDI y ciclones son tolerantes (null). */
+async function edTraerFresco(urlF, urlM, urlKB, urlN, elCarg){
+  edErrorFresco = null;
+  const pF = mc5FetchJSON(urlF, { forzar: true, alReintentar: (err) => {
+    if (elCarg) elCarg.textContent = (err && err.status === 429)
+      ? "El servicio de datos está limitando las peticiones. Reintentando…"
+      : "La conexión tardó demasiado. Reintentando…";
+  }});
+  const pM = mc5Sleep(1200).then(() => mc5FetchJSON(urlM, { forzar: true, esperas: [0, 9000] })).catch(() => null);
+  const pKB = mc5Sleep(2400).then(() => mc5FetchJSON(urlKB, { forzar: true, esperas: [0, 9000] })).catch(() => null);
+  const pN = mc5Sleep(600).then(() => fetch(urlN)).then(r => r.json()).then(edParseNHC).catch(() => null);
+  let F;
+  try { F = await pF; } catch(e){ edErrorFresco = e; return null; }
+  const M = await pM, KB = await pKB, N = await pN;
+  return { F, M, KB, N };
+}
+async function edTraerParcial(urlM, urlKB, urlN, falta){
+  const out = {};
+  const ps = [];
+  if (falta.M) ps.push(mc5FetchJSON(urlM, { forzar: true, esperas: [0, 9000] }).then(j => { out.M = j; }).catch(() => {}));
+  if (falta.KB) ps.push(mc5Sleep(1200).then(() => mc5FetchJSON(urlKB, { forzar: true, esperas: [0, 9000] })).then(j => { out.KB = j; }).catch(() => {}));
+  if (falta.N) ps.push(fetch(urlN).then(r => r.json()).then(j => { out.N = edParseNHC(j); }).catch(() => {}));
+  await Promise.all(ps);
+  return out;
+}
+/* Al guardar una edición, las copias mc5 de las URL del motor sobran:
+   se borran para no duplicar cuota de localStorage. */
+function edBorrarCopiasMc5(urls){
+  const st = mc5Store(); if (!st) return;
+  try { urls.forEach(u => { if (u) st.removeItem("mc5|" + mc5Hash(u)); }); } catch(e){}
+}
+/* Cómputo completo del motor desde datos crudos (sin tocar el DOM): es
+   el mismo cálculo que hacía cargar() en línea. */
+function edComputar(f){
+  const arrF = Array.isArray(f.F) ? f.F : [f.F];
+  const series = f.KB ? (Array.isArray(f.KB) ? f.KB : [f.KB]).map(kbdiSerie) : null;
+  const pd = {}, rs = {};
+  for (let d = 0; d < 3; d++){
+    pd[d] = arrF.map((loc, mi) => {
+      if (!loc || !loc.hourly) return null;
+      const r = calcularPunto(loc, d);
+      const np = nieblaPunto(loc.hourly, d);
+      r.niebla = !np ? null
+        : np.sinVentana ? { n: 0, sinVentana: true }
+        : { km: np.km, conLluvia: np.conLluvia, n: np.conLluvia ? (np.km <= 5 ? 1 : 0) : nivelVisKm(np.km) };
+      r.ciclon = ciclonPunto(MUNICIPIOS[mi][2], MUNICIPIOS[mi][3], f.N);
+      const ks = (series && series[mi]) ? series[mi][92 + d] : null;
+      r.incendios = incendiosPunto(ks != null ? ks : null, r._rhMin, r.viento ? r.viento.gust : null, r._pDia);
+      return r;
+    });
+    rs[d] = PROVS.map((p, i) => {
+      const res = armarProvincia(i, d, pd[d], f.M, f.N);
+      return { res, max: nivelMaximo(res) };
+    });
+  }
+  return { puntosDia: pd, resultados: rs, niveles: edMatriz(rs), series };
+}
+/* Resuelve el paquete de la edición vigente: {paq, comp} o null si no
+   hay datos guardados ni frescos. paq = {F, M, KB, N, niveles, estado,
+   ciclo, t}; comp = el cómputo de paq. Ver el bloque de diseño. */
+async function edResolver(ed, traer, computar, parcial){
+  const reg = edLeer(ed.clave) || {};
+  let paq = reg.vigente || reg.base || null;
+  if (!paq){
+    const f = await traer();
+    if (!f) return null;
+    const comp = computar(f);
+    paq = { F: f.F, M: f.M, KB: f.KB, N: f.N, niveles: comp.niveles, estado: "edicion", ciclo: ed.ciclo, t: Date.now() };
+    reg.base = paq; reg.check = paq.t;
+    edGuardar(ed.clave, reg); edPurgar(ed.clave);
+    return { paq, comp };
+  }
+  let comp = null;
+  const falta = { M: paq.M == null, KB: paq.KB == null, N: paq.N == null };
+  if (falta.M || falta.KB || falta.N){
+    const parc = (await parcial(falta)) || {};
+    let sucio = false;
+    if (falta.M && parc.M != null){ paq.M = parc.M; sucio = true; }
+    if (falta.KB && parc.KB != null){ paq.KB = parc.KB; sucio = true; }
+    if (falta.N && parc.N != null){ paq.N = parc.N; sucio = true; }
+    if (sucio){
+      comp = computar(paq);
+      paq.niveles = comp.niveles;
+      if (reg.vigente) reg.vigente = paq; else reg.base = paq;
+      edGuardar(ed.clave, reg);
+    }
+  }
+  const ultimo = reg.check || paq.t;
+  if (Date.now() - ultimo >= ED_VALVULA_MS){
+    reg.check = Date.now(); edGuardar(ed.clave, reg);
+    const f = await traer();
+    if (f){
+      const compF = computar(f);
+      if (edCambioImportante(paq.niveles, compF.niveles)){
+        const nuevo = { F: f.F, M: f.M, KB: f.KB, N: f.N, niveles: compF.niveles, estado: "actualizacion", ciclo: ed.ciclo, t: Date.now() };
+        reg.vigente = nuevo; edGuardar(ed.clave, reg);
+        return { paq: nuevo, comp: compF };
+      }
+    }
+  }
+  if (!comp) comp = computar(paq);
+  return { paq, comp };
+}
+
 async function cargar(){
   const lats = MUNICIPIOS.map(m => m[2]).join(","), lons = MUNICIPIOS.map(m => m[3]).join(",");
   const urlF = "https://api.open-meteo.com/v1/forecast?latitude=" + lats + "&longitude=" + lons +
@@ -1722,69 +1968,34 @@ async function cargar(){
   const elCarg = document.getElementById("cargando");
   elCarg.classList.remove("oculto");
   elCarg.textContent = "Cargando datos de los modelos…";
-  const pF = mc5FetchJSON(urlF, { alReintentar: (err) => {
-    elCarg.textContent = (err && err.status === 429)
-      ? "El servicio de datos está limitando las peticiones. Reintentando…"
-      : "La conexión tardó demasiado. Reintentando…";
-  }});
-  const pM = mc5Sleep(1200).then(() => mc5FetchJSON(urlM, { esperas: [0, 9000] })).catch(() => null);
-  const pKB = mc5Sleep(2400).then(() => mc5FetchJSON(urlKB, { esperas: [0, 9000] })).catch(() => null);
-  const pN = mc5Sleep(600).then(() => fetch(urlN)).then(r => r.json()).then(j => {
-    const storms = {};
-    for (const f of (j.features || [])){
-      const a = f.attributes;
-      if (a.lat == null || a.lon == null) continue;
-      const key = (a.stormnum || a.stormname || "?") + "";
-      if (!storms[key]) storms[key] = { name: a.stormname || "Ciclón", pts: [], kt: 0 };
-      storms[key].pts.push({ lat: a.lat, lon: a.lon });
-      if ((a.tau === 0 || a.tau == null) && a.maxwind != null) storms[key].kt = Math.max(storms[key].kt, a.maxwind);
-      if (a.maxwind != null && storms[key].kt === 0) storms[key].kt = a.maxwind;
-    }
-    return Object.values(storms).filter(s => s.pts.length && s.kt > 0);
-  }).catch(() => null);
-
-  try {
-    datosF = await pF;
-  } catch(e) {
+  const ed = edicionPara(Date.now());
+  const resEd = await edResolver(ed,
+    () => edTraerFresco(urlF, urlM, urlKB, urlN, elCarg),
+    (f) => edComputar(f),
+    (falta) => edTraerParcial(urlM, urlKB, urlN, falta));
+  if (!resEd){
     document.getElementById("cargando").classList.add("oculto");
     const er = document.getElementById("error");
     er.style.display = "block";
-    er.innerHTML = (e && e.status === 429)
+    er.innerHTML = (edErrorFresco && edErrorFresco.status === 429)
       ? "El servicio de datos está limitando las peticiones. Espera un minuto y vuelve a intentarlo.<br><button onclick='mc5Reintentar()'>Reintentar</button>"
       : "No se pudieron cargar los datos del modelo. Comprueba tu conexión e inténtalo de nuevo.<br><button onclick='mc5Reintentar()'>Reintentar</button>";
     return;
   }
-  datosM = await pM;
-  ciclones = await pN;
-  const datosKB = await pKB;
-  if (datosKB){ const arrKB = Array.isArray(datosKB) ? datosKB : [datosKB]; KBDI_SERIES = arrKB.map(kbdiSerie); }
-  if (datosF && !Array.isArray(datosF)) datosF = [datosF];
-
-  for (let d = 0; d < 3; d++){
-    /* Puntos del día: cada municipio con sus peligros de tierra calculados
-       y la niebla fusionada como un peligro más del punto. */
-    puntosDia[d] = datosF.map((loc, mi) => {
-      if (!loc || !loc.hourly) return null;
-      const r = calcularPunto(loc, d);
-      const np = nieblaPunto(loc.hourly, d);
-      r.niebla = !np ? null
-        : np.sinVentana ? { n: 0, sinVentana: true }
-        : { km: np.km, conLluvia: np.conLluvia, n: np.conLluvia ? (np.km <= 5 ? 1 : 0) : nivelVisKm(np.km) };
-      r.ciclon = ciclonPunto(MUNICIPIOS[mi][2], MUNICIPIOS[mi][3], ciclones);
-      const ks = (KBDI_SERIES && KBDI_SERIES[mi]) ? KBDI_SERIES[mi][92 + d] : null;
-      r.incendios = incendiosPunto(ks != null ? ks : null, r._rhMin, r.viento ? r.viento.gust : null, r._pDia);
-      return r;
-    });
-    resultados[d] = PROVS.map((p, i) => {
-      const res = armarProvincia(i, d, puntosDia[d], datosM, ciclones);
-      return { res, max: nivelMaximo(res) };
-    });
-  }
+  const paq = resEd.paq;
+  datosF = Array.isArray(paq.F) ? paq.F : [paq.F];
+  datosM = paq.M;
+  ciclones = paq.N;
+  if (resEd.comp.series) KBDI_SERIES = resEd.comp.series;
+  puntosDia = resEd.comp.puntosDia;
+  resultados = resEd.comp.resultados;
+  edBorrarCopiasMc5([urlF, urlM, urlKB]);
 
   document.getElementById("cargando").classList.add("oculto");
   document.getElementById("app").classList.remove("oculto");
-  const ahora = new Date();
+  const ahora = new Date(paq.t);
   document.getElementById("actualizado").textContent = "Actualizado: " + ahora.toLocaleDateString("es", { day:"numeric", month:"short" }) + " " + ahora.toLocaleTimeString("es", { hour:"2-digit", minute:"2-digit" });
+  pintarSelloEdicion(paq);
   ponerFechas();
   iniciarMapa();
   pintar();
@@ -7301,7 +7512,7 @@ cuandoMotor(function(){
 
 /* Manija pública v3 (depuración y verificación). */
 window.MC_V2 = {
-  version: "v41",
+  version: "v42",
   initSeccion: initSeccion,
   mostrarVista: mostrarVista,
   diagModelos: function(){
