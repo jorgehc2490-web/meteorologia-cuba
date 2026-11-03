@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://meteorologia-cuba.com/sitemap.xml
